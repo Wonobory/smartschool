@@ -81,9 +81,9 @@ app.post('/login', async (req, res) => {
         req.session.userId = result[0].id;
         req.session.role = result[0].role;
 
-        res.json({type: 'done', message: 'Logged in successfully'});
+        res.json({type: 'done', message: 'Logged in successfully', redirect: '/validarhorari'});
     } else {
-        res.json({type: 'error', message: 'Invalid email or password', redirect: '/validarhorari'});
+        res.json({type: 'error', message: 'Invalid email or password'});
     }
 });
 
