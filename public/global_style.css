@@ -1,0 +1,10 @@
+.logo {
+    height: 80px;
+}
+
+.div-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}

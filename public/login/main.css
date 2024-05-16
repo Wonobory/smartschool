@@ -1,0 +1,34 @@
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+html {
+    margin: 0;
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    height: 100%;
+}
+
+.login-bg {
+    background-color: #EAE8FF;
+
+    padding: 3em;
+
+    width: 25em;
+}
+
+.login-bg h5 {
+    margin-top: 3em;
+    margin-bottom: 1em;
+}
+
+.login-button {
+    margin-top: 1em;
+}
