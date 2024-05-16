@@ -29,6 +29,11 @@ body {
     margin-bottom: 1em;
 }
 
+.alert {
+    margin-top: 0.6em;
+    margin-bottom: 0px;
+}
+
 .login-button {
     margin-top: 1em;
 }
