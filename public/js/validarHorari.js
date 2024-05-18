@@ -31,3 +31,4 @@ function carregarHorari() {
         horesTotals.innerText = res.data.horesTotals.toFixed(2);
     })
 }
+
