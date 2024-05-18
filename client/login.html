@@ -20,21 +20,22 @@
             </div>
             
             <h5>Iniciar sessió</h4>
-            
-            <div class="form-floating mb-3">
-                <input name="email" type="email" class="form-control" id="email" placeholder="name@example.com">
-                <label for="email">Email address</label>
-            </div>
-            <div class="form-floating">
-                <input name="password" type="password" class="form-control" id="password" placeholder="Password">
-                <label for="password">Password</label>
-            </div>
+            <form action="/login">
+                <div class="form-floating mb-3">
+                    <input name="email" type="email" class="form-control" id="email" placeholder="name@example.com">
+                    <label for="email">Email address</label>
+                </div>
+                <div class="form-floating">
+                    <input name="password" type="password" class="form-control" id="password" placeholder="Password">
+                    <label for="password">Password</label>
+                </div>
+            </form>
 
             <div id="output">
                 
             </div>
 
-            <button class="btn btn-primary login-button" id="login" type="submit">Login</button>
+            <button class="btn btn-primary login-button" id="login" type="button">Login</button>
         </div>
     </div>
 </body>

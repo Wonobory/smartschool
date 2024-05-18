@@ -11,17 +11,17 @@
     <script src="/js/jquery.min.js"></script>
 
     <link rel="stylesheet" href="/login/main.css">
-    <script defer src="/js/login/manageLogin.js"></script>
+    <script defer src="/js/sidebarLogic.js"></script>
 </head>
 <body>
     <nav class="sidebar">
-        <img src="/svg/menu.svg" class="icon" alt="menu icon">
-        <li>Validar horari</li>
-        <li>Kilometratge</li>
-        <li>Dies pendents</li>
-        <li>Registre mensual</li>
-        <li>Perfil</li>
-        <li>Tancar sessió</li>
+        <img src="/svg/menu.svg" class="icon" alt="menu icon" id="toggle-menu">
+        <div class="menu-option selected"><img src="/svg/clock.svg" alt="clock icon"><li>Validar horari</li></div>
+        <div class="menu-option"><img src="/svg/wheel.svg" alt="wheel icon"><li>Kilometratge</li></div>
+        <div class="menu-option"><img src="/svg/list.svg" alt="list icon"><li>Dies pendents</li></div>
+        <div class="menu-option"><img src="/svg/calendar.svg" alt="calendar icon"><li>Registre mensual</li></div>
+        <div class="menu-option"><img src="/svg/profile.svg" alt="profile icon"><li>Perfil</li></div>
+        <div class="menu-option"><img src="/svg/close.svg" alt="close icon"><li>Tancar sessió</li></div>
     </nav>
 </body>
 </html>
