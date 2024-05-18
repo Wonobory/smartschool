@@ -51,12 +51,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 
+/*
+AUTH REQUIRED:
+
+if (!req.session.userId) {
+    res.redirect('/login');
+    return res.end();
+}
+
+*/
 
 
 
 
-
-app.get('/validarhorari', (req, res) => {
+app.get('/dashboard', (req, res) => {
     if (!req.session.userId) {
         res.redirect('/login');
         return res.end();
@@ -64,6 +72,7 @@ app.get('/validarhorari', (req, res) => {
 
     res.sendFile(path.join(__dirname, '/client/home.html'));
 });
+
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '/client/login.html'));
 });
@@ -81,9 +90,48 @@ app.post('/login', async (req, res) => {
         req.session.userId = result[0].id;
         req.session.role = result[0].role;
 
-        res.json({type: 'done', message: 'Logged in successfully', redirect: '/validarhorari'});
+        res.json({type: 'done', message: 'Logged in successfully', redirect: '/dashboard'});
     } else {
         res.json({type: 'error', message: 'Invalid email or password'});
     }
+});
+
+app.get('/horari-esperat', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = `SELECT * FROM users WHERE id = ${req.session.userId}`;
+    const result = await pool.query(sql);
+    const horari = JSON.parse(result[0].horari);
+    const avui = new Date().getDay();
+
+    for (var i = 0; i < horari.length; i++) {
+        if (horari[i].dia == avui) {
+            //format: [["9:30","13:00"],["17:00","20:00"]]...
+            var count = 0
+            for (var x = 0; x < horari[i].horari.length; x++) {
+                //HORA D'INICI
+                const time = horari[i].horari[x][0].split(':');
+                const h = parseInt(time[0]);
+                const m = parseInt(time[1]);
+
+                const totalMinutes = h * 60 + m;
+                
+                //HORA DE FINAL
+                const time2 = horari[i].horari[x][1].split(':');
+                const h2 = parseInt(time2[0]);
+                const m2 = parseInt(time2[1]);
+                
+                count += ((h2 * 60 + m2) - totalMinutes) / 60;
+            }
+
+            res.json({horari: horari[i].horari, horesTotals: parseFloat(count.toFixed(2))});
+            return res.end();
+        }
+    }
+
+    res.json({horari: null, horesTotals: 0});
 });
 
