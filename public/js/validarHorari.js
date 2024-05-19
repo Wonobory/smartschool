@@ -9,6 +9,15 @@ function carregarHorari() {
             horesTotals:7
         */
 
+        if (res.data.horariValidat) {
+            $('.horari-esperat-h')[0].innerText = 'Horari validat:';
+            $('.validar-button')[0].classList.add('disabled');
+            $('.validar-button')[0].removeAttribute('onclick');
+            $('.validar-button')[0].innerText = 'Validat';
+            //remove
+            $('.modificar-button')[0].remove()
+        }
+
         const horariDisplay = $('#display-horari')[0]
         const horesTotals = $('.hores-amount')[0]
 
@@ -32,3 +41,10 @@ function carregarHorari() {
     })
 }
 
+function validarHorari() {
+    axios.post('/validar-horari').then(res => {
+        carregarHorari();
+    }).catch(err => {
+        alert(err.response.data.message);
+    });
+}
