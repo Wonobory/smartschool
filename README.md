@@ -1,4 +1,4 @@
-# smartschool
+# Smartschool Gestor Privat
 Gestor privat de les hores dels treballadors de smartschool
 
 #### Pàgina de login
