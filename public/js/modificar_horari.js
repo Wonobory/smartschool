@@ -1,24 +1,14 @@
 function carregarModificarHoraris() {
     axios.get('/horari-esperat').then(res => {
-        console.log(res.data);
-        /*
-            horari:
-                ['9:00', '13:00']
-                ['17:00', '20:00']
-
-            horesTotals:7
-        */
-
-        if (res.data.horari == null) {
-            return
-        }
-
         const displayHorari = $('#display-horari')[0]
         displayHorari.innerHTML = '';
 
-        for (var i = 0; i < res.data.horari.length; i++) {
-            afegirFranja(res.data.horari[i][0], res.data.horari[i][1], displayHorari, null);
-        }
+        //Per els casos en que no hi ha cap horari programat per aquell dia
+        if (res.data.horari != null) {
+            for (var i = 0; i < res.data.horari.length; i++) {
+                afegirFranja(res.data.horari[i][0], res.data.horari[i][1], displayHorari, null);
+            }
+        }        
 
         const button = document.createElement('button');
         button.onclick = function() {

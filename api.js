@@ -160,6 +160,8 @@ app.post('/validar-horari', async (req, res) => {
         const result = await pool.query(sql)
         
         var horari = horariAvui(JSON.parse(result[0].horari));
+
+        if (!horari) horari = []; //Per els casos en que es valida un horari en blanc
     } else {
         var horari = req.body.horari;
     }
