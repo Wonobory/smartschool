@@ -250,6 +250,44 @@ app.post('/absencia', async (req, res) => {
     res.json({type: 'done', message: 'Absència notificada correctament'});
 })
 
+app.get('/registre-mensual', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = `SELECT * FROM horaris_validats WHERE user_id = ${req.session.userId} AND MONTH(dia) = MONTH(CURRENT_DATE()) AND YEAR(dia) = YEAR(CURRENT_DATE())`;
+    const result = await pool.query(sql);
+
+    const sql2 = `SELECT * FROM absencies WHERE user_id = ${req.session.userId} AND MONTH(dia) = MONTH(CURRENT_DATE()) AND YEAR(dia) = YEAR(CURRENT_DATE())`;
+    const result2 = await pool.query(sql2);
+
+    /*
+    [{
+        dia: 
+        horari:
+        validat: true/false //false significa absencia
+        motiu: null o motiu
+        hores: hores realitzades
+    }]
+    */
+
+    let toReturn = [];
+    for (var i = 0; i < result.length; i++) {
+        const horari = JSON.parse(result[i].horari);
+        const hores = contarHores(horari);
+        const dia = new Date(result[i].dia).toISOString().slice(0, 10);
+        toReturn.push({dia: dia, horari: horari, validat: true, motiu: null, hores: hores});
+    }
+    for (var i = 0; i < result2.length; i++) {
+        const horari = JSON.parse(result2[i].horari_esperat);
+        const dia = new Date(result2[i].dia).toISOString().slice(0, 10);
+        toReturn.push({dia: dia, horari: horari, validat: false, motiu: result2[i].motiu, hores: 0});
+    }
+
+    return res.json(toReturn);
+})
+
 
 //Busca l'horari que toca el dia d'avui
 function horariAvui(horari) {

@@ -13,7 +13,7 @@
     :root {
         --header-size: 22px;
         --body-size: 17px;
-        --menu--max-width: 25em;
+        --menu--max-width: 18.5em;
     }
 }
 
@@ -132,4 +132,42 @@
     align-items: center;
     display: none;
     margin-top: 1em;
+}
+
+.registre-mensual {
+    width: var(--menu--max-width);
+}
+
+.registre-diari-menu-mensual-container {
+    width: 100%;
+    border-top: 1px solid black;
+    font-size: 13px;
+    padding-bottom: 0.5em;
+}
+
+.registre-diari-b1 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0.5em;
+    padding-bottom: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.registre-diari-hores {
+    padding: 0.5em;
+}
+
+#registres {
+    width: 100%;
+}
+
+.title-registre-diari {
+    font-size: 16px;
+    font-weight: 700;
+    padding: 0.5em;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }

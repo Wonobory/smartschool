@@ -97,13 +97,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 span#marcar-absencia-text {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
 }
 
 .marcar-absencia-button {
     background-color: #BFBFBF;
-    padding: 0.3em;
+    padding: 0.2em;
     border-radius: 10px;
     display: flex;
     padding-inline: 1em;
@@ -119,4 +119,9 @@ span#marcar-absencia-text {
 
 .marcar-absencia-button img {
     margin-right: 3px;
+}
+
+.afegir-franja {
+    background: #4a90e2;
+    border: none;
 }
