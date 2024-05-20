@@ -11,15 +11,17 @@
         <span class="horari-esperat-h">Horari esperat:</span>
 
         <div id="display-horari">
-            
-
             <button>+</button>
         </div>
-        
 
         <div class="hores-totals-container">
             <span>Hores totals:</span>
             <span class="hores-amount">0.00</span>
+        </div>
+
+        <div class="marcar-absencia-button" onclick="carregarPagina('/pages/marcar_absencia.html')">
+            <img src="/svg/alerta.svg" alt="alert icon" class="icon-small">
+            <span id="marcar-absencia-text">Marcar absència</span>
         </div>
         
         <button class="validar-button" onclick="validarHorariModificat()">Validar</button>

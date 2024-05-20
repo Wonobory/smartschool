@@ -1,7 +1,5 @@
 function carregarHorari() {
     axios.get('/horari-esperat').then(res => {
-        console.log(res.data);
-
         if (res.data.horariValidat) {
             $('.horari-esperat-h')[0].innerText = 'Horari validat:';
             $('.validar-button')[0].classList.add('disabled');
@@ -10,6 +8,12 @@ function carregarHorari() {
             //remove
             $('.modificar-button')[0].remove()
         }
+
+        if (res.data.absencia) {
+            const motius = ["Festiu", "Canvi de torn", "Personal", "Absentisme", "Baixa mèdica", "Permís retribuït", "Vacances"];
+            $('#absencia-display')[0].style.display = 'flex'
+            $('#motiu-absencia')[0].innerText = motius[res.data.motiu - 1];
+        }        
 
         mostrarDia();
         const horariDisplay = $('#display-horari')[0]
@@ -20,7 +24,7 @@ function carregarHorari() {
         horesTotals.innerText = '';
 
         if (res.data.horari == null) {
-            horariDisplay.innerText = 'No tens cap hora programada per avui';
+            horariDisplay.innerText = 'No tens cap hora programada';
             horesTotals.innerText = '0';
             return
         }

@@ -148,7 +148,7 @@ function validarHorariModificat() {
     console.log(horari);
 
     axios.post('/validar-horari', {horari: horari}).then(res => {
-        carregarHorari();
+        carregarPagina('/pages/validar_horari.html');
     }).catch(err => {
         console.error(err.response.data.message);
     })

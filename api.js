@@ -104,15 +104,12 @@ app.get('/horari-esperat', async (req, res) => {
 
     //Revisa si l'horari d'avui ja ha estat validat
     const avui2 = new Date().toISOString().slice(0, 10);
-    const sql2 = `SELECT * FROM horaris_validats WHERE user_id = ${req.session.userId} AND dia = '${avui2}'`;
-    const result2 = await pool.query(sql2);
-    let horariValidat = false;
-    if (result2.length > 0) horariValidat = true;
+    const jaValidatResult = await jaValidat(req.session.userId, avui2);
 
-    if (horariValidat) {
-        const horari = JSON.parse(result2[0].horari);
+    if (jaValidatResult[0]) {
+        const horari = jaValidatResult[1];
         const hourCount = contarHores(horari);
-        res.json({horari: horari, horesTotals: hourCount, horariValidat: horariValidat});
+        res.json({horari: horari, horesTotals: hourCount, horariValidat: jaValidatResult[0], absencia: jaValidatResult[2], motiu: jaValidatResult[3]});
         return res.end();
     }
 
@@ -146,7 +143,7 @@ app.get('/horari-esperat', async (req, res) => {
         }
     }
 
-    res.json({horari: null, horesTotals: 0, horariValidat: horariValidat});
+    res.json({horari: null, horesTotals: 0, horariValidat: jaValidatResult[0]});
 });
 
 app.post('/validar-horari', async (req, res) => {
@@ -195,11 +192,8 @@ app.post('/validar-horari', async (req, res) => {
 
     //Comprova que no s'hagi validat ja l'horari d'avui
     const avui = new Date().toISOString().slice(0, 10);
-    const sql = `SELECT * FROM horaris_validats WHERE user_id = ${req.session.userId} AND dia = '${avui}'`;
-    const result = await pool.query(sql);
-
-    if (result.length > 0) {
-        res.status(400).json({type: 'error', message: "Ja has validat l'horari d'avui"});
+    if (await jaValidat(req.session.userId, avui)[0]) {
+        res.status(400).json({type: 'error', message: 'Ja has validat l\'horari avui'});
         return res.end();
     }
 
@@ -207,6 +201,53 @@ app.post('/validar-horari', async (req, res) => {
     const sql2 = `INSERT INTO horaris_validats (user_id, dia, horari) VALUES (${req.session.userId}, '${avui}', '${JSON.stringify(horari)}')`;
     await pool.query(sql2);
     res.json({type: 'done', message: 'Horari validat correctament'});       
+})
+
+app.post('/absencia', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    //comprova que no s'hagi validat ja l'horari d'avui
+    const dia = new Date().toISOString().slice(0, 10);
+    if (await jaValidat(req.session.userId, dia)[0]) {
+        res.status(400).json({type: 'error', message: 'Ja has validat l\'horari avui'});
+        return res.end();
+    }
+
+    /*
+    1: Festiu
+    2: Canvi de torn
+    3: Personal
+    4: Absentisme
+    5: Baixa mèdica         
+    6: Permís retribuït     
+    7: Vacances             - Computen igual
+    */
+    const { motiu } = req.body;
+
+    if (!motiu ||(motiu < 1 || motiu > 7) || isNaN(motiu)) {
+        res.status(400).json({type: 'error', message: 'Motiu invàlid'});
+        return res.end();
+    }
+
+    const horariEsperat = horariAvui(await getHorari(req.session.userId));
+    
+    if (!horariEsperat) {
+        res.status(400).json({type: 'error', message: 'No tens cap horari programat per avui'});
+        return res.end();
+    }
+
+    let computenHores = false;
+
+    //Casos en els que no hem de restar les hores realitzades
+    if (motiu == 7) computenHores = true;
+
+    const sql3 = `INSERT INTO absencies (user_id, dia, motiu, horari_esperat, computen) VALUES (${req.session.userId}, '${dia}', '${motiu}', '${JSON.stringify(horariEsperat)}', ${+computenHores})`;
+    await pool.query(sql3);
+
+    res.json({type: 'done', message: 'Absència notificada correctament'});
 })
 
 
@@ -233,4 +274,32 @@ function contarHores(horari) {
         count += h2 - h1;
     }
     return count;
+}
+
+async function getHorari(user_id) {
+    const sql = `SELECT * FROM users WHERE id = ${user_id}`;
+    const result = await pool.query(sql);
+    return JSON.parse(result[0].horari);
+}
+
+/*Retorna un array:
+[0]: Si ja ha validat o marcat absència en l'horari
+[1]: Retorna l'horari validat
+[2]: Retorna si és una absència o no
+[3]: Retorna el motiu de l'absència
+*/
+async function jaValidat(user_id, dia) {
+    const sql = `SELECT * FROM absencies WHERE user_id = ${user_id} AND dia = '${dia}'`;
+    const result = await pool.query(sql);
+    if (result.length > 0) {
+        return [true, [], true, result[0].motiu];
+    }
+
+    const sql2 = `SELECT * FROM horaris_validats WHERE user_id = ${user_id} AND dia = '${dia}'`;
+    const result2 = await pool.query(sql2);
+    if (result2.length > 0) {
+        return [true, JSON.parse(result2[0].horari), false, null];
+    }
+
+    return [false, null, null, null];
 }
