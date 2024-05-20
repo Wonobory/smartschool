@@ -1,13 +1,6 @@
 function carregarHorari() {
     axios.get('/horari-esperat').then(res => {
         console.log(res.data);
-        /*
-            horari:
-                ['9:00', '13:00']
-                ['17:00', '20:00']
-
-            horesTotals:7
-        */
 
         if (res.data.horariValidat) {
             $('.horari-esperat-h')[0].innerText = 'Horari validat:';
@@ -18,6 +11,7 @@ function carregarHorari() {
             $('.modificar-button')[0].remove()
         }
 
+        mostrarDia();
         const horariDisplay = $('#display-horari')[0]
         const horesTotals = $('.hores-amount')[0]
 
@@ -47,4 +41,11 @@ function validarHorari() {
     }).catch(err => {
         alert(err.response.data.message);
     });
+}
+
+function mostrarDia() {
+    const dies = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
+    const date = new Date();
+    const avui = dies[date.getDay()];
+    $('#dia-avui')[0].innerText = `${avui} ${date.toLocaleDateString()}`;
 }

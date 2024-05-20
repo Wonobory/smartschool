@@ -19,6 +19,7 @@ function carregarModificarHoraris() {
         button.className = 'btn btn-primary afegir-franja';
         displayHorari.appendChild(button);
 
+        mostrarDia();
         calcularHores();
     })
 }
