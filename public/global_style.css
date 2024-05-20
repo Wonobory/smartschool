@@ -34,6 +34,7 @@
     border-right: 1px solid black;
     z-index: 99;
     transition: all 0.3s ease;
+    position: relative;
 }
 
 body {
@@ -97,16 +98,19 @@ html {
     width: 4em;
 }
 
-.selected::before {
+.selector {
     content: "";
     width: 2.5em;
     border-radius: 50%;
     height: 2.5em;
     background-color: #a9a4ff;
     position: absolute;
-    left: 0;
+    top: 94px;
+    left: 19px;
     transform: translate(-20%, 0);
     z-index: 0;
+
+    transition: all 0.3s ease;
 }
 
 .disabled {
