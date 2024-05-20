@@ -95,3 +95,28 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     margin-top: var(--message-margin);
     font-size: 11px;
 }
+
+span#marcar-absencia-text {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.marcar-absencia-button {
+    background-color: #BFBFBF;
+    padding: 0.3em;
+    border-radius: 10px;
+    display: flex;
+    padding-inline: 1em;
+    margin-bottom: 1em;
+    cursor: pointer;
+    align-items: center;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;  
+    -ms-user-select: none;     
+    user-select: none;       
+}
+
+.marcar-absencia-button img {
+    margin-right: 3px;
+}

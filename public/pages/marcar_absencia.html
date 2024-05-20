@@ -1,0 +1,30 @@
+<link rel="stylesheet" href="/basicMenu.css">
+<link rel="stylesheet" href="/css/modificarHorari.css">
+<link rel="stylesheet" href="/css/marcarAbsencia.css">
+
+<div class="basic-menu-container">
+    <div class="basic-menu-header">
+        <h3>Validar horari del dia</h3>
+    </div>
+
+    <div class="basic-menu-body">
+        <span id="dia-avui"></span>
+        
+        <div>
+            <span class="motiu-absencia">Motiu de l'absència:</span>
+            <select class="form-select form-select-sm select-absencia" aria-label=".form-select-sm example">
+                <option value="1">Festiu</option>
+                <option value="2">Canvi de Torn</option>
+                <option value="3">Personal</option>
+                <option value="4">Absentisme</option>
+                <option value="5">Baixa mèdica</option>
+                <option value="6">Permís retribuït</option>
+                <option value="7">Vacances</option>
+            </select>
+        </div>
+        
+        
+        <button style="margin-top: 3em;" class="validar-button" onclick="marcarAbsencia()">Validar</button>
+        <span class="modificar-button" onclick="carregarPagina('/pages/validar_horari.html')">Cancel·lar</span>
+    </div>    
+</div>
