@@ -24,6 +24,10 @@ function seleccionar(num) {
             moveSelector(94);
             carregarPagina('/pages/validar_horari.html')
             break;
+        case 3:
+            moveSelector(190);
+            carregarPagina('/pages/validar_dia_anterior.html')
+            break;
         case 4:
             moveSelector(238);
             carregarPagina('/pages/registre_mensual.html')

@@ -9,11 +9,19 @@
     }
 }
 
-@media (min-width: 391px) {
+@media (min-width: 391px ) {
     :root {
         --header-size: 22px;
         --body-size: 17px;
         --menu--max-width: 18.5em;
+    }
+}
+
+@media (min-width: 440px) {
+    :root {
+        --header-size: 22px;
+        --body-size: 17px;
+        --menu--max-width: 20.5em;
     }
 }
 
@@ -170,4 +178,18 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
+}
+
+.alert-container {
+    padding: 0.5em;
+    padding-bottom: 0;
+    padding-top: 0;
+    display: flex;
+    align-items: center;
+}
+
+.alert-container span {
+    padding: 0;
+    margin-left: 3px;
+    font-weight: 600;
 }

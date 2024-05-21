@@ -25,7 +25,7 @@ function carregarHorari() {
 
         if (res.data.horari == null) {
             horariDisplay.innerText = 'No tens cap hora programada';
-            horesTotals.innerText = '0';
+            horesTotals.innerText = '0.00';
             return
         }
 
