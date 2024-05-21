@@ -9,6 +9,8 @@ const crypto = require("crypto");
 const { promisify } = require('util')
 session = require('express-session');
 
+const cron = require('node-cron');
+
 require("dotenv").config();
 
 app.listen(80, () => {
@@ -276,12 +278,12 @@ app.get('/registre-mensual', async (req, res) => {
     for (var i = 0; i < result.length; i++) {
         const horari = JSON.parse(result[i].horari);
         const hores = contarHores(horari);
-        const dia = new Date(result[i].dia).toISOString().slice(0, 10);
+        const dia = new Date(adjustTimezone(result[i].dia)).toISOString().slice(0, 10);
         toReturn.push({dia: dia, horari: horari, validat: true, motiu: null, hores: hores});
     }
     for (var i = 0; i < result2.length; i++) {
         const horari = JSON.parse(result2[i].horari_esperat);
-        const dia = new Date(result2[i].dia).toISOString().slice(0, 10);
+        const dia = new Date(adjustTimezone(result2[i].dia)).toISOString().slice(0, 10);
         toReturn.push({dia: dia, horari: horari, validat: false, motiu: result2[i].motiu, hores: 0});
     }
 
@@ -341,3 +343,54 @@ async function jaValidat(user_id, dia) {
 
     return [false, null, null, null];
 }
+
+function adjustTimezone(dateString) {
+    const date = new Date(dateString);
+    const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+    const localDate = new Date(date.getTime() - userTimezoneOffset);
+    return localDate;
+}
+
+async function buscarUsuarisQueNoHanValidat() {
+    const today = new Date();
+    const yesterday = new Date(today);
+
+    yesterday.setDate(today.getDate() - 1);
+    const dia = yesterday.toISOString().slice(0, 10);
+
+    const sql = `SELECT * FROM users`;
+    const result = await pool.query(sql);
+
+    let usuarisAValidar = []
+    for (var i = 0; i < result.length; i++) {
+        const horari = JSON.parse(result[i].horari)
+        for (var j = 0; j < horari.length; j++) {
+            if (yesterday.getDay() == horari[j].dia) {
+                usuarisAValidar.push({user_id: result[i].id, horari_esperat: horari[j].horari})
+                break
+            }
+        }
+    }
+
+    for (var i = 0; i < usuarisAValidar.length; i++) {
+        const sql = `SELECT * FROM horaris_validats WHERE user_id = ${usuarisAValidar[i].user_id} AND dia = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
+        const result = await pool.query(sql)
+        if (result.length > 0) continue 
+
+        const sql2 = `SELECT * FROM absencies WHERE user_id = ${usuarisAValidar[i].user_id} AND dia = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
+        const result2 = await pool.query(sql2)
+        if (result2.length > 0) continue
+
+        console.log(usuarisAValidar[i].user_id)
+        const sql3 = `INSERT INTO dies_pendents (user_id, dia, horari_esperat) VALUES (${usuarisAValidar[i].user_id}, DATE_SUB(CURDATE(), INTERVAL 1 DAY), '${JSON.stringify(usuarisAValidar[i].horari_esperat)}')`
+        await pool.query(sql3)
+    }
+}
+
+//Cada dia a les 2:10 de la nit es revisara qui no ha validat l'horari
+cron.schedule('10 2 * * *', () => {
+    buscarUsuarisQueNoHanValidat();
+    console.log('holaaa')
+}, {
+    timezone: 'Europe/Madrid' // Ajusta la zona horaria según sea necesario
+});
