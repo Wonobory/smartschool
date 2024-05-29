@@ -1,5 +1,10 @@
 function carregarHorari() {
-    axios.get('/horari-esperat').then(res => {
+    axios.get('/horari-esperat', {
+        params: {
+            dia: window.location.hash.slice(1)
+        }
+    }).then(res => {
+        console.log("sha carregat el horari")
         if (res.data.horariValidat) {
             $('.horari-esperat-h')[0].innerText = 'Horari validat:';
             $('.validar-button')[0].classList.add('disabled');
@@ -15,7 +20,14 @@ function carregarHorari() {
             $('#motiu-absencia')[0].innerText = motius[res.data.motiu - 1];
         }        
 
-        mostrarDia();
+        if (window.location.hash) {
+            let [dia, mes, any] = window.location.hash.slice(1).split('-');
+            mostrarDia(new Date(any, mes - 1, dia));
+            
+        } else {
+            mostrarDia();
+        }
+        
         const horariDisplay = $('#display-horari')[0]
         const horesTotals = $('.hores-amount')[0]
 
@@ -47,9 +59,8 @@ function validarHorari() {
     });
 }
 
-function mostrarDia() {
+function mostrarDia(date = new Date()) {
     const dies = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
-    const date = new Date();
     const avui = dies[date.getDay()];
     $('#dia-avui')[0].innerText = `${avui} ${date.toLocaleDateString()}`;
 }

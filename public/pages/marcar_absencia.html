@@ -25,6 +25,6 @@
         
         
         <button style="margin-top: 3em;" class="validar-button" onclick="marcarAbsencia()">Validar</button>
-        <span class="modificar-button" onclick="carregarPagina('/pages/validar_horari.html')">Cancel·lar</span>
+        <span class="modificar-button" onclick="carregarPagina('/pages/validar_horari.html', window.location.hash ? 1 : 0, window.location.hash ? window.location.hash : null)">Cancel·lar</span>
     </div>    
 </div>

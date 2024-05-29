@@ -63,7 +63,10 @@ if (!req.session.userId) {
 
 */
 
-
+app.get('/', (req, res) => {
+    res.redirect('/dashboard');
+    return res.end();
+});
 
 
 app.get('/dashboard', (req, res) => {
@@ -103,10 +106,25 @@ app.get('/horari-esperat', async (req, res) => {
         res.redirect('/login');
         return res.end();
     }
-
+    
+    
     //Revisa si l'horari d'avui ja ha estat validat
-    const avui2 = new Date().toISOString().slice(0, 10);
-    const jaValidatResult = await jaValidat(req.session.userId, avui2);
+    if (!req.query.dia) {
+        var avui = new Date();
+           
+    } else {
+        try {
+            const [day, month, year] = req.query.dia.split('-');
+            var avui = new Date(year, month - 1, day); 
+        } catch (e) {
+            res.status(400).json({type: 'error', message: 'Dia invàlid'});
+            return res.end();
+        }              
+    }
+    console.log(req.query.dia);
+    //const avui = req.query.dia ? new Date(req.query.dia) : new Date();
+    
+    const jaValidatResult = await jaValidat(req.session.userId, avui.toISOString().slice(0, 10));
 
     if (jaValidatResult[0]) {
         const horari = jaValidatResult[1];
@@ -118,10 +136,11 @@ app.get('/horari-esperat', async (req, res) => {
     const sql = `SELECT * FROM users WHERE id = ${req.session.userId}`;
     const result = await pool.query(sql);
     const horari = JSON.parse(result[0].horari);
-    const avui = new Date().getDay();
+    
+    let dia = avui.getDay();
 
     for (var i = 0; i < horari.length; i++) {
-        if (horari[i].dia == avui) {
+        if (horari[i].dia == dia) {
             //format: [["9:30","13:00"],["17:00","20:00"]]...
             var count = 0
             for (var x = 0; x < horari[i].horari.length; x++) {
@@ -381,7 +400,6 @@ async function buscarUsuarisQueNoHanValidat() {
         const result2 = await pool.query(sql2)
         if (result2.length > 0) continue
 
-        console.log(usuarisAValidar[i].user_id)
         const sql3 = `INSERT INTO dies_pendents (user_id, dia, horari_esperat) VALUES (${usuarisAValidar[i].user_id}, DATE_SUB(CURDATE(), INTERVAL 1 DAY), '${JSON.stringify(usuarisAValidar[i].horari_esperat)}')`
         await pool.query(sql3)
     }
@@ -390,7 +408,6 @@ async function buscarUsuarisQueNoHanValidat() {
 //Cada dia a les 2:10 de la nit es revisara qui no ha validat l'horari
 cron.schedule('10 2 * * *', () => {
     buscarUsuarisQueNoHanValidat();
-    console.log('holaaa')
 }, {
     timezone: 'Europe/Madrid' // Ajusta la zona horaria según sea necesario
 });
