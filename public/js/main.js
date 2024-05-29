@@ -1,9 +1,13 @@
-function carregarPagina(url) {
+function carregarPagina(url, action = 0, dia = null) {
     fetch(url)
         .then(response => response.text())
         .then(html => {
             document.getElementById('page-output').innerHTML = html;
-            if (url == '/pages/validar_horari.html') {
+            if (url == '/pages/validar_horari.html' && action == 0) {
+                window.location.hash = '';
+                carregarHorari();
+            } else if (url == '/pages/validar_horari.html' && action == 1 && dia != null) {
+                window.location.hash = dia;
                 carregarHorari();
             } else if (url == '/pages/modificar_horaris.html') {
                 carregarModificarHoraris();

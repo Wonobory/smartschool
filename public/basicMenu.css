@@ -25,6 +25,14 @@
     }
 }
 
+@media (min-width: 2000px) {
+    :root {
+        --header-size: 22px;
+        --body-size: 17px;
+        --menu--max-width: 60em;
+    }
+}
+
 
 .basic-menu-container {
     display: flex;
@@ -192,4 +200,20 @@
     padding: 0;
     margin-left: 3px;
     font-weight: 600;
+}
+
+.validar-horari-passat {
+    width: 100%;
+    border-top: 1px solid black;
+    font-size: 13px;
+    padding: 0.5em;
+    padding-inline: 0.5em;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.validar-horari-passat:hover {
+    background-color: #f2f2f2;
 }

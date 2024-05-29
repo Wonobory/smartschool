@@ -19,8 +19,24 @@ function carregarModificarHoraris() {
         button.className = 'btn btn-primary afegir-franja';
         displayHorari.appendChild(button);
 
-        mostrarDia();
+        if (window.location.hash) {
+            let [dia, mes, any] = window.location.hash.slice(1).split('-');
+            mostrarDia(new Date(any, mes - 1, dia));
+            
+        } else {
+            mostrarDia();
+        }
+
         calcularHores();
+
+        $('.modificar-button')[0].onclick = function() {
+            // revisar si venim de validar un horari anterior o no
+            if (window.location.hash) {
+                carregarPagina('/pages/validar_horari.html', 1, window.location.hash.slice(1));
+            } else {
+                carregarPagina('/pages/validar_horari.html');
+            }
+        }
     })
 }
 
@@ -148,7 +164,13 @@ function validarHorariModificat() {
     console.log(horari);
 
     axios.post('/validar-horari', {horari: horari}).then(res => {
-        carregarPagina('/pages/validar_horari.html');
+        //revisar si venim de validar un horari anterior o no
+        if (window.location.hash) {
+            carregarPagina('/pages/validar_horari.html', 1, window.location.hash.slice(1));
+            
+        } else {
+            carregarPagina('/pages/validar_horari.html');
+        }
     }).catch(err => {
         console.error(err.response.data.message);
     })
