@@ -44,3 +44,4 @@ function seleccionar(num) {
 
 
 carregarPagina('/pages/validar_horari.html')
+revisarNotificacio()
