@@ -5,28 +5,30 @@
         <h3>Dies pendents</h3>
     </div>
 
-    <div class="basic-menu-body">
+    <div class="basic-menu-body" style="min-height: 60vh;">
         <div class="title-registre-diari">
             <span>MAIG 2024</span>
         </div>
         <div id="registres">
-            
+            <!-- CELL 
             <div class="validar-horari-passat" onclick="carregarPagina('/pages/validar_horari.html', 1, '01-05-2024')">
                 <img src="/svg/alerta.svg" alt="">
                 <span>01-05-2024</span>
             </div>
-
-            <div class="validar-horari-passat">
-                <img src="/svg/alerta.svg" alt="">
-                <span>01-05-2024</span>
-            </div>
-
-            <div class="validar-horari-passat">
-                <img src="/svg/alerta.svg" alt="">
-                <span>01-05-2024</span>    
-            </div>
-                  
+            -->                  
         </div>
         
-    </div>    
+    </div> 
+</div>
+<div class="basic-menu-container registre-mensual" style="min-height: 9em; height: 9em">
+    <div class="basic-menu-header">
+        <h3>Valida una altre data</h3>
+    </div>
+
+    <div class="basic-menu-body">
+        <div class="title-registre-diari" style="padding: 0px;">
+            <input type="date" id="dia-a-validar" name="trip-start" max="2024-05-30" required/>
+            <button type="button" class="btn btn-primary" onclick="triarDiaAValidar()">Valida</button>
+        </div>        
+    </div> 
 </div>

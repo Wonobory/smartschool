@@ -236,7 +236,7 @@ app.post('/validar-horari', async (req, res) => {
     await pool.query(sql2);
 
     await eliminarDiesPendents(req.session.userId, avui);
-    
+
     res.json({type: 'done', message: 'Horari validat correctament'});       
 })
 
@@ -427,6 +427,7 @@ async function buscarUsuarisQueNoHanValidat() {
     const yesterday = new Date(today);
 
     yesterday.setDate(today.getDate() - 1);
+    console.log(yesterday.getDay())
     const dia = yesterday.toISOString().slice(0, 10);
 
     const sql = `SELECT * FROM users`;
@@ -463,3 +464,5 @@ cron.schedule('10 2 * * *', () => {
 }, {
     timezone: 'Europe/Madrid' // Ajusta la zona horaria según sea necesario
 });
+
+buscarUsuarisQueNoHanValidat();

@@ -51,6 +51,7 @@ function carregarHorari() {
 function validarHorari() {
     axios.post('/validar-horari', {dia: window.location.hash.slice(1)}).then(res => {
         carregarHorari();
+        revisarNotificacio()
     }).catch(err => {
         alert(err.response.data.message);
     });
