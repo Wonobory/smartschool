@@ -1,5 +1,5 @@
 function carregarModificarHoraris() {
-    axios.get('/horari-esperat').then(res => {
+    axios.get('/horari-esperat', { params: { dia: window.location.hash.slice(1) } }).then(res => {
         const displayHorari = $('#display-horari')[0]
         displayHorari.innerHTML = '';
 
@@ -163,7 +163,7 @@ function validarHorariModificat() {
 
     console.log(horari);
 
-    axios.post('/validar-horari', {horari: horari}).then(res => {
+    axios.post('/validar-horari', {horari: horari, dia: window.location.hash.slice(1)}).then(res => {
         //revisar si venim de validar un horari anterior o no
         if (window.location.hash) {
             carregarPagina('/pages/validar_horari.html', 1, window.location.hash.slice(1));

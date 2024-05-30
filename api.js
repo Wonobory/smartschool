@@ -115,13 +115,13 @@ app.get('/horari-esperat', async (req, res) => {
     } else {
         try {
             const [day, month, year] = req.query.dia.split('-');
-            var avui = new Date(year, month - 1, day); 
+            var avui = adjustTimezone(new Date(year, month - 1, day).toISOString());
+
         } catch (e) {
             res.status(400).json({type: 'error', message: 'Dia invàlid'});
             return res.end();
         }              
     }
-    console.log(req.query.dia);
     //const avui = req.query.dia ? new Date(req.query.dia) : new Date();
     
     const jaValidatResult = await jaValidat(req.session.userId, avui.toISOString().slice(0, 10));
@@ -141,6 +141,7 @@ app.get('/horari-esperat', async (req, res) => {
 
     for (var i = 0; i < horari.length; i++) {
         if (horari[i].dia == dia) {
+            //CONTAR LES HORES
             //format: [["9:30","13:00"],["17:00","20:00"]]...
             var count = 0
             for (var x = 0; x < horari[i].horari.length; x++) {
@@ -211,9 +212,21 @@ app.post('/validar-horari', async (req, res) => {
         horaris_comprovats.push([start, end]);
     }
 
+    //Per saber si estem validant el dia d'avui o el d'un dia anterior
+    console.log(req.body)
+    try {
+        const [dia, mes, any] = req.body.dia.split('-');
+        var avui = req.body.dia ? `${any}-${mes}-${dia}` : new Date().toISOString().slice(0, 10);
+    } catch (e) {
+        console.log(e);
+        res.status(400).json({type: 'error', message: 'Dia invàlid'});
+        return res.end();
+    }
+
+    let jaValidatResult = await jaValidat(req.session.userId, avui)
+    
     //Comprova que no s'hagi validat ja l'horari d'avui
-    const avui = new Date().toISOString().slice(0, 10);
-    if (await jaValidat(req.session.userId, avui)[0]) {
+    if (jaValidatResult[0]) {
         res.status(400).json({type: 'error', message: 'Ja has validat l\'horari avui'});
         return res.end();
     }
@@ -231,8 +244,18 @@ app.post('/absencia', async (req, res) => {
     }
 
     //comprova que no s'hagi validat ja l'horari d'avui
-    const dia = new Date().toISOString().slice(0, 10);
-    if (await jaValidat(req.session.userId, dia)[0]) {
+    try {
+        const [dia, mes, any] = req.body.dia.split('-');
+        var avui = req.body.dia ? `${any}-${mes}-${dia}` : new Date().toISOString().slice(0, 10);
+    } catch (e) {
+        console.log(e);
+        res.status(400).json({type: 'error', message: 'Dia invàlid'});
+        return res.end();
+    }
+
+    let jaValidatResult = await jaValidat(req.session.userId, avui)
+    
+    if (jaValidatResult[0]) {
         res.status(400).json({type: 'error', message: 'Ja has validat l\'horari avui'});
         return res.end();
     }
@@ -265,7 +288,7 @@ app.post('/absencia', async (req, res) => {
     //Casos en els que no hem de restar les hores realitzades
     if (motiu == 7) computenHores = true;
 
-    const sql3 = `INSERT INTO absencies (user_id, dia, motiu, horari_esperat, computen) VALUES (${req.session.userId}, '${dia}', '${motiu}', '${JSON.stringify(horariEsperat)}', ${+computenHores})`;
+    const sql3 = `INSERT INTO absencies (user_id, dia, motiu, horari_esperat, computen) VALUES (${req.session.userId}, '${avui}', '${motiu}', '${JSON.stringify(horariEsperat)}', ${+computenHores})`;
     await pool.query(sql3);
 
     res.json({type: 'done', message: 'Absència notificada correctament'});
@@ -350,6 +373,7 @@ async function getHorari(user_id) {
 async function jaValidat(user_id, dia) {
     const sql = `SELECT * FROM absencies WHERE user_id = ${user_id} AND dia = '${dia}'`;
     const result = await pool.query(sql);
+    
     if (result.length > 0) {
         return [true, [], true, result[0].motiu];
     }
@@ -394,7 +418,7 @@ async function buscarUsuarisQueNoHanValidat() {
     for (var i = 0; i < usuarisAValidar.length; i++) {
         const sql = `SELECT * FROM horaris_validats WHERE user_id = ${usuarisAValidar[i].user_id} AND dia = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
         const result = await pool.query(sql)
-        if (result.length > 0) continue 
+        if (result.length > 0) continue
 
         const sql2 = `SELECT * FROM absencies WHERE user_id = ${usuarisAValidar[i].user_id} AND dia = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
         const result2 = await pool.query(sql2)

@@ -1,10 +1,5 @@
 function carregarHorari() {
-    axios.get('/horari-esperat', {
-        params: {
-            dia: window.location.hash.slice(1)
-        }
-    }).then(res => {
-        console.log("sha carregat el horari")
+    axios.get('/horari-esperat', { params: { dia: window.location.hash.slice(1) }}).then(res => {
         if (res.data.horariValidat) {
             $('.horari-esperat-h')[0].innerText = 'Horari validat:';
             $('.validar-button')[0].classList.add('disabled');
@@ -48,11 +43,13 @@ function carregarHorari() {
         }
 
         horesTotals.innerText = res.data.horesTotals.toFixed(2);
-    })
+    }).catch(err => {
+        console.error(err);
+    });
 }
 
 function validarHorari() {
-    axios.post('/validar-horari').then(res => {
+    axios.post('/validar-horari', {dia: window.location.hash.slice(1)}).then(res => {
         carregarHorari();
     }).catch(err => {
         alert(err.response.data.message);
