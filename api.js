@@ -234,6 +234,9 @@ app.post('/validar-horari', async (req, res) => {
     //Si s'han passat totes les comprovacions anteriors significa que ja el podem incloure a la base de dades
     const sql2 = `INSERT INTO horaris_validats (user_id, dia, horari) VALUES (${req.session.userId}, '${avui}', '${JSON.stringify(horari)}')`;
     await pool.query(sql2);
+
+    await eliminarDiesPendents(req.session.userId, avui);
+    
     res.json({type: 'done', message: 'Horari validat correctament'});       
 })
 
@@ -291,6 +294,8 @@ app.post('/absencia', async (req, res) => {
     const sql3 = `INSERT INTO absencies (user_id, dia, motiu, horari_esperat, computen) VALUES (${req.session.userId}, '${avui}', '${motiu}', '${JSON.stringify(horariEsperat)}', ${+computenHores})`;
     await pool.query(sql3);
 
+    await eliminarDiesPendents(req.session.userId, avui);
+
     res.json({type: 'done', message: 'Absència notificada correctament'});
 })
 
@@ -332,6 +337,29 @@ app.get('/registre-mensual', async (req, res) => {
     return res.json(toReturn);
 })
 
+app.get('/dies-pendents', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = `SELECT * FROM dies_pendents WHERE user_id = ${req.session.userId}`;
+    const result = await pool.query(sql);
+
+    let toReturn = [];
+    for (var i = 0; i < result.length; i++) {
+        const horari = JSON.parse(result[i].horari_esperat);
+        const dia = new Date(adjustTimezone(result[i].dia)).toISOString().slice(0, 10);
+        toReturn.push({dia: dia, horari: horari});
+    }
+
+    return res.json(toReturn);
+})
+
+function eliminarDiesPendents(user_id, dia) {
+    const sql = `DELETE FROM dies_pendents WHERE user_id = ${user_id} AND dia = '${dia}'`;
+    pool.query(sql);
+}
 
 //Busca l'horari que toca el dia d'avui
 function horariAvui(horari) {

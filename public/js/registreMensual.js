@@ -22,7 +22,7 @@ function carregarRegistre() {
             span.innerHTML = data[i].dia;
 
             const span2 = document.createElement('span');
-            span2.innerHTML = data[i].hores.toFixed(2);
+            span2.innerHTML = data[i].hores.toFixed(2) + ' h';
             horesTotals += data[i].hores;
 
             div2.appendChild(span);

@@ -177,6 +177,12 @@
 
 #registres {
     width: 100%;
+    overflow-y: auto;
+    max-height: 67vh;
+}
+
+.registre-diari-b1 span:first-child {
+    text-decoration: underline;
 }
 
 .title-registre-diari {

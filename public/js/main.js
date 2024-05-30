@@ -13,6 +13,8 @@ function carregarPagina(url, action = 0, dia = null) {
                 carregarModificarHoraris();
             } else if (url == '/pages/registre_mensual.html') {
                 carregarRegistre();
+            } else if (url == '/pages/validar_dia_anterior.html') {
+                carregarValidarHorarisAnteriors();
             }
             
         });
