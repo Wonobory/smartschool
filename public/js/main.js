@@ -38,6 +38,10 @@ function seleccionar(num) {
             moveSelector(238);
             carregarPagina('/pages/registre_mensual.html')
             break;
+        case 5:
+            moveSelector(286);
+            carregarPagina('/pages/perfil.html')
+            break;
     }
 }
 

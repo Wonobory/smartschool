@@ -28,14 +28,14 @@
     <link rel="stylesheet" href="/css/marcarAbsencia.css">
 </head>
 <body>
-    <nav class="sidebar">
+    <nav class="sidebar collapsed">
         <img src="/svg/menu.svg" class="icon" alt="menu icon" id="toggle-menu">
-        <div class="menu-option selected" onclick="seleccionar(1)"><img src="/svg/clock.svg" alt="clock icon"><li>Validar horari</li></div>
-        <div class="menu-option"><img src="/svg/wheel.svg" alt="wheel icon"><li>Kilometratge</li></div>
-        <div class="menu-option" onclick="seleccionar(3)"><img src="/svg/list.svg" alt="list icon"><li>Dies pendents</li><img class="icon-small notificacio-pendent" src="/svg/exclamation.svg"></div>
-        <div class="menu-option" onclick="seleccionar(4)"><img src="/svg/calendar.svg" alt="calendar icon"><li>Registre mensual</li></div>
-        <div class="menu-option"><img src="/svg/profile.svg" alt="profile icon"><li>Perfil</li></div>
-        <div class="menu-option"><img src="/svg/close.svg" alt="close icon"><li>Tancar sessió</li></div>
+        <div class="menu-option selected" onclick="seleccionar(1)"><img src="/svg/clock.svg" alt="clock icon"><li class="collapsed-text">Validar horari</li></div>
+        <div class="menu-option"><img src="/svg/wheel.svg" alt="wheel icon"><li class="collapsed-text">Kilometratge</li></div>
+        <div class="menu-option" onclick="seleccionar(3)"><img src="/svg/list.svg" alt="list icon"><li class="collapsed-text">Dies pendents</li><img class="icon-small notificacio-pendent" src="/svg/exclamation.svg"></div>
+        <div class="menu-option" onclick="seleccionar(4)"><img src="/svg/calendar.svg" alt="calendar icon"><li class="collapsed-text">Registre mensual</li></div>
+        <div class="menu-option" onclick="seleccionar(5)"><img src="/svg/profile.svg" alt="profile icon"><li class="collapsed-text">Perfil</li></div>
+        <div class="menu-option"><img src="/svg/close.svg" alt="close icon"><li class="collapsed-text">Tancar sessió</li></div>
         <div class="selector" id="selector"></div>
     </nav>
 
