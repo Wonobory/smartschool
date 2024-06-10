@@ -356,6 +356,8 @@ app.get('/dies-pendents', async (req, res) => {
     return res.json(toReturn);
 })
 
+
+
 function eliminarDiesPendents(user_id, dia) {
     const sql = `DELETE FROM dies_pendents WHERE user_id = ${user_id} AND dia = '${dia}'`;
     pool.query(sql);
