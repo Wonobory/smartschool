@@ -31,6 +31,10 @@ function seleccionar(num) {
             moveSelector(94);
             carregarPagina('/pages/validar_horari.html')
             break;
+        case 2:
+            moveSelector(142);
+            carregarPagina('/pages/kilometratge.html')
+            break;
         case 3:
             moveSelector(190);
             carregarPagina('/pages/validar_dia_anterior.html')
