@@ -213,7 +213,6 @@ app.post('/validar-horari', async (req, res) => {
     }
 
     //Per saber si estem validant el dia d'avui o el d'un dia anterior
-    console.log(req.body)
     try {
         const [dia, mes, any] = req.body.dia.split('-');
         var avui = req.body.dia ? `${any}-${mes}-${dia}` : new Date().toISOString().slice(0, 10);
@@ -231,13 +230,15 @@ app.post('/validar-horari', async (req, res) => {
         return res.end();
     }
 
+    var horari_esperat = horariAvui(await getHorari(req.session.userId), new Date(avui).getDay());
+
     //Si s'han passat totes les comprovacions anteriors significa que ja el podem incloure a la base de dades
-    const sql2 = `INSERT INTO horaris_validats (user_id, dia, horari) VALUES (${req.session.userId}, '${avui}', '${JSON.stringify(horari)}')`;
+    const sql2 = `INSERT INTO horaris_validats (user_id, dia, horari, horari_esperat) VALUES (${req.session.userId}, '${avui}', '${JSON.stringify(horari)}', '${JSON.stringify(horari_esperat)}')`;
     await pool.query(sql2);
 
     await eliminarDiesPendents(req.session.userId, avui);
 
-    res.json({type: 'done', message: 'Horari validat correctament'});       
+    res.json({type: 'done', message: 'Horari validat correctament'});      
 })
 
 app.post('/absencia', async (req, res) => {
@@ -279,7 +280,7 @@ app.post('/absencia', async (req, res) => {
         return res.end();
     }
 
-    const horariEsperat = horariAvui(await getHorari(req.session.userId));
+    const horariEsperat = horariAvui(await getHorari(req.session.userId), new Date(avui).getDay());
     
     if (!horariEsperat) {
         res.status(400).json({type: 'error', message: 'No tens cap horari programat per avui'});
@@ -357,6 +358,75 @@ app.get('/dies-pendents', async (req, res) => {
 })
 
 
+app.get('/perfil', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    /*
+    Retorna:
+    
+    data de l'alta
+    hores setmanals esperades
+    balanç d'hores extres
+    */
+
+    const sql = `SELECT * FROM users WHERE id = ${req.session.userId}`;
+    const result = await pool.query(sql);
+    const [any, mes, dia] = adjustTimezone(result[0].alta).toISOString().slice(0, 10).split('-');
+    const dataAlta = `${dia}/${mes}/${any}`;
+
+    const horesSetmanals = calcularHoresSetmanals(JSON.parse(result[0].horari));
+
+    const balançHores = await calcularBalançHores(req.session.userId);
+
+    res.json({dataAlta: dataAlta, horesSetmanals: horesSetmanals, balançHores: balançHores});
+})
+
+function calcularHoresSetmanals(horari) {
+    let count = 0;
+    for (var i = 0; i < horari.length; i++) {
+        count += contarHores(horari[i].horari);
+    }
+    return count;
+}
+
+async function calcularBalançHores(user_id) {
+    const horari = await getHorari(user_id);
+
+    const sql1 = `SELECT * FROM horaris_validats WHERE user_id = ${user_id}`;
+    const horesRealitzades = await pool.query(sql1);
+
+    const sql2 = `SELECT * FROM absencies WHERE user_id = ${user_id}`;
+    const absencies = await pool.query(sql2);
+
+
+    const sql3 = `SELECT * FROM dies_pendents WHERE id = ${user_id}`;
+    const diesPendents = await pool.query(sql3);
+
+    let horesTotals = 0;
+    for (var i = 0; i < horesRealitzades.length; i++) {
+        const horari = JSON.parse(horesRealitzades[i].horari);
+
+        //el balanç d'hores s'ha de calcular sumant les hores que s'han fet menys les que s'havien de fer
+        horesTotals += contarHores(horari) - contarHores(JSON.parse(horesRealitzades[i].horari_esperat));
+    }
+
+    for (var i = 0; i < absencies.length; i++) {
+        if (!absencies[i].computen) { //revisa si s'han de pagar o no
+            const horari = JSON.parse(absencies[i].horari_esperat);
+            horesTotals -= contarHores(horari);
+        }
+    }
+
+    for (var i = 0; i < diesPendents.length; i++) {
+        const horari = JSON.parse(diesPendents[i].horari_esperat);
+        horesTotals -= contarHores(horari);
+    }
+
+    return horesTotals;
+}
 
 function eliminarDiesPendents(user_id, dia) {
     const sql = `DELETE FROM dies_pendents WHERE user_id = ${user_id} AND dia = '${dia}'`;
@@ -364,14 +434,14 @@ function eliminarDiesPendents(user_id, dia) {
 }
 
 //Busca l'horari que toca el dia d'avui
-function horariAvui(horari) {
-    const avui = new Date().getDay();
+function horariAvui(horari, avui=new Date().getDay()) {
     for (var i = 0; i < horari.length; i++) {
         if (horari[i].dia == avui) {
             return horari[i].horari;
         }
     }
-    return null;
+
+    return [];
 }
 
 function contarHores(horari) {
@@ -429,7 +499,6 @@ async function buscarUsuarisQueNoHanValidat() {
     const yesterday = new Date(today);
 
     yesterday.setDate(today.getDate() - 1);
-    console.log(yesterday.getDay())
     const dia = yesterday.toISOString().slice(0, 10);
 
     const sql = `SELECT * FROM users`;
