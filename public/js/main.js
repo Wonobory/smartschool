@@ -15,8 +15,9 @@ function carregarPagina(url, action = 0, dia = null) {
                 carregarRegistre();
             } else if (url == '/pages/validar_dia_anterior.html') {
                 carregarValidarHorarisAnteriors();
-            }
-            
+            } else if (url == '/pages/perfil.html') {
+                carregarPerfil();
+            }            
         });
 }
 
