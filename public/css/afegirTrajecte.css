@@ -1,0 +1,88 @@
+.line {
+    width: 100%;
+    height: 2px;
+    background-color: #000;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.inputs-divider {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.afegir-trajecte-b2 {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.afegir-trajecte-b3 {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.afegir-trajecte-b2 div, .afegir-trajecte-b3 div {
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.afegir-trajecte-b2 div span {
+    width: fit-content;
+}
+
+.afegir-trajecte-b2 img {
+    width: 1.5em;
+    margin-top: 1em;
+}
+
+.inputs-divider input, .afegir-trajecte-b1 input {
+    width: 100%;
+    padding-inline: 0.4em;
+    padding-top: 0.4em;
+    padding-bottom: 0.3em;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 16px;
+    border: none;
+    font-weight: 600;
+    transition: all 0.1s ease-in-out;
+    max-width: 9em;
+}
+
+.afegir-trajecte-b1 input {
+    font-weight: normal !important;
+}
+
+.inputs-divider input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #666666;
+}
+
+.inputs-divider span, .afegir-trajecte-b1 span{
+    font-size: 15px;
+    font-weight: 600;
+    color: #4F4F4F;
+    text-decoration: underline;
+    margin-bottom: 3px;
+}
+
+.afegir-trajecte-b1 {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    width: 100%;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
