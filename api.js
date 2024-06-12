@@ -384,6 +384,40 @@ app.get('/perfil', async (req, res) => {
     res.json({dataAlta: dataAlta, horesSetmanals: horesSetmanals, balançHores: balançHores});
 })
 
+app.post('/afegir-trajecte', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+    /* Necessita:
+        - dia (YYYY-MM-DD)
+        - origen (string)
+        - destí (string)
+        - km (float)
+    */
+
+    const { dia, origen, desti, km } = req.body;
+    if (!dia || !origen || !desti || !km) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    if (isNaN(km) || km < 0) {
+        res.status(400).json({type: 'error', message: 'Kilometratge invàlid'});
+        return res.end();
+    }
+
+    const date = new Date(dia);
+    if (date.toString() === 'Invalid Date' || date > new Date()) {
+        res.status(400).json({type: 'error', message: 'Data invàlida'});
+        return res.end();
+    }
+
+    const sql = "INSERT INTO trajectes (user_id, dia, origen, desti, km) VALUES (?, ?, ?, ?, ?)";
+    await pool.query(sql, [req.session.userId, date.toISOString().split('T')[0], origen, desti, km]);
+    res.json({type: 'done', message: 'Trajecte afegit correctament'});
+})
+
 function calcularHoresSetmanals(horari) {
     let count = 0;
     for (var i = 0; i < horari.length; i++) {
