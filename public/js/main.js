@@ -17,7 +17,9 @@ function carregarPagina(url, action = 0, dia = null) {
                 carregarValidarHorarisAnteriors();
             } else if (url == '/pages/perfil.html') {
                 carregarPerfil();
-            }            
+            } else if (url == '/pages/afegir_trajecte.html') {
+                carregarAfegirTrajecte();
+            }
         });
 }
 

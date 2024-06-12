@@ -1,0 +1,67 @@
+<link rel="stylesheet" href="/css/afegirTrajecte.css">
+
+<div class="basic-menu-container registre-mensual" style="max-width: 26em;">
+    <div class="basic-menu-header">
+        <h3>Kilometratge</h3>
+    </div>
+
+    <div class="basic-menu-body">
+
+        <div class="afegir-trajecte-b1">
+            <span>Dia:</span>
+            <input type="date" id="dia-trajecte" required style="font-size: 15px;padding-top: 0.5em;">
+        </div>
+
+        <div class="line"></div>
+
+        <div class="inputs-divider">
+            <div class="afegir-trajecte-b2">
+                <div>
+                    <span>De:</span>
+                    
+
+                    <input type="text" list="llocs" required>
+                    <datalist id="llocs">
+                        <option value="Smart">
+                        <option value="Pràctiques 1">
+                        <option value="Estonnac">
+                        <option value="Miravall">
+                        <option value="Jesuites">
+                        <option value="Maristes">
+                        <option value="Ciutat Jardí">
+                    </datalist>
+                </div>
+                <div>
+                    <img src="/svg/arrow3.svg" alt="">
+                </div>
+                
+                <div>
+                    <span>Fins a:</span>
+                    <input list="llocs" type="text" required>
+                </div>
+            </div>
+    
+            <div class="afegir-trajecte-b3">
+                <div>
+                    <span>Kilòmetres:</span>
+                    <input type="number" min="0" required>
+                </div>
+            </div>
+        </div>
+        
+            
+        <!-- BOTO -->
+        <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 1em;">
+            <div class="marcar-absencia-button" onclick="" style="width: fit-content; margin-top: 1em;">
+                <img src="/svg/cancel.svg" alt="kilometratge icon" class="icon-small">
+                <span id="marcar-absencia-text">Cancel·lar</span>
+            </div>
+            <div class="marcar-absencia-button" onclick="" style="width: fit-content; margin-top: 1em;">
+                <img src="/svg/wheel-blue.svg" alt="kilometratge icon" class="icon-small">
+                <span id="marcar-absencia-text">Afegir</span>
+            </div>
+        </div>
+
+        
+    </div>    
+</div>
