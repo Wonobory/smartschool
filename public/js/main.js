@@ -19,6 +19,8 @@ function carregarPagina(url, action = 0, dia = null) {
                 carregarPerfil();
             } else if (url == '/pages/afegir_trajecte.html') {
                 carregarAfegirTrajecte();
+            } else if (url == '/pages/kilometratge.html') {
+                carregarTrajectes()
             }
         });
 }

@@ -418,6 +418,39 @@ app.post('/afegir-trajecte', async (req, res) => {
     res.json({type: 'done', message: 'Trajecte afegit correctament'});
 })
 
+app.get('/trajectes', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+    
+    const sql = "SELECT * FROM trajectes WHERE user_id = ?";
+    const result = await pool.query(sql, [req.session.userId]);
+    
+
+    let toReturn = [];
+    for (var i = 0; i < result.length; i++) {
+        const dia = new Date(adjustTimezone(result[i].dia)).toISOString().slice(0, 10);
+        let hasFound = false;
+
+        for (var j = 0; j < toReturn.length; j++) {
+            if (toReturn[j].dia == dia) {
+                hasFound = true;
+
+                toReturn[j].trajectes.push({id: result[i].id, origen: result[i].origen, desti: result[i].desti, km: result[i].km, pagat: !!result[i].pagat});
+                break //Busca a veure si ja hi ha multiples viatges en un mateix dia
+            }
+        }
+
+        if (!hasFound) {
+            toReturn.push({dia: dia, trajectes: [{id: result[i].id, origen: result[i].origen, desti: result[i].desti, km: result[i].km, pagat: !!result[i].pagat}]});
+        }
+    }
+
+    console.log(toReturn);
+    return res.json(toReturn);
+})
+
 function calcularHoresSetmanals(horari) {
     let count = 0;
     for (var i = 0; i < horari.length; i++) {
