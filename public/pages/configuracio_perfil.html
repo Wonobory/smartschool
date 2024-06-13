@@ -1,36 +1,35 @@
-<div class="perfil-b2-1">
-    <div class="perfil-data">
-        <span class="perfil-data-title">Data d'alta:</span>
-        <div>
-            <span id="data-alta">12/12/2020</span>
+<link rel="stylesheet" href="/css/configuracioPerfil.css">
+
+<div class="configuracio-container">
+    <div class="configuracio-apartats">
+        <span class="config">Notificacions per correu</span>
+        <label class="switch">
+            <input type="checkbox" id="enviar-notificacions">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="configuracio-apartats">
+        <span class="config">Canviar foto de perfil</span>
+        <div class="small-blue-button" id="boto-upload">
+            <span>Puja</span>
+        </div>
+        <input type="file" name="file" id="foto-perfil-upload" style="display: none;" accept=".jpg, .png, .jpeg">
+    </div>
+    <div class="configuracio-apartats">
+        <span class="config">Canviar adreça electrònica</span>
+        <div class="small-white-button" onclick="carregarPaginaPerfil('/pages/cambiar_adreça.html')">
+            <span>Canvia</span>
         </div>
     </div>
-
-    <div class="perfil-data">
-        <span class="perfil-data-title">Hores setmanals:</span>
-        <div>
-            <span id="hores-setmanals">10.00h</span>
+    <div class="configuracio-apartats">
+        <span class="config">Canviar contrasenya</span>
+        <div class="small-white-button" onclick="carregarPaginaPerfil('/pages/canviar_contrasenya.html')">
+            <span>Canvia</span>
         </div>
     </div>
 </div>
 
-<div class="perfil-b2-2">
-    <div class="perfil-data">
-        <div class="info-container">
-            <span class="perfil-data-title">Balanç d'hores extres:</span>
-            <img src="/svg/info.svg" alt="info icon" class="small-small-icon">
-        </div>
-        
-        <div>
-            <span id="balanç-hores-extres">2.00h</span> <!-- Afegir una opció per a poder veure el registre -->
-        </div>
-    </div>
+<div class="marcar-absencia-button" onclick="carregarPagina('/pages/perfil.html')" style="width: fit-content; margin-top: 2em;">
+    <img src="/svg/back.svg" alt="settings icon" class="icon-small">
+    <span id="marcar-absencia-text">Torna</span>
 </div>
-
-<div class="marcar-absencia-button" onclick="" style="width: fit-content; margin-top: 4em;">
-    <img src="/svg/settings.svg" alt="settings icon" class="icon-small">
-    <span id="marcar-absencia-text">Configuració</span>
-</div>
-<!--
-TODOOOOOOOOOOOOOOOO
--->

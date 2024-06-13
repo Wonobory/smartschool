@@ -3,6 +3,9 @@ function carregarPerfil() {
         const ALTA = $('#data-alta')[0];
         const BALANÇ = $('#balanç-hores-extres')[0];
         const HORES = $('#hores-setmanals')[0];
+        const pfp = $('.pfp')[0];
+
+        pfp.src = `/uploads/${res.data.fotoPerfil}`;
 
         ALTA.innerText = res.data.dataAlta;
         BALANÇ.innerText = res.data.balançHores.toFixed(2) + 'h';

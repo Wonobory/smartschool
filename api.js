@@ -9,6 +9,10 @@ const crypto = require("crypto");
 const { promisify } = require('util')
 session = require('express-session');
 
+
+const multer = require('multer');
+
+const upload = multer({ dest: 'public/uploads/', limits: { fileSize: 25 * 1024 * 1024 }});
 const cron = require('node-cron');
 
 require("dotenv").config();
@@ -62,6 +66,23 @@ if (!req.session.userId) {
 }
 
 */
+
+app.post('/update-pfp', upload.single('file'), async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.file) {
+        res.status(400).json({type: 'error', message: 'No s\'ha pujat cap arxiu'});
+        return res.end();
+    }
+
+    const sql = "UPDATE users SET foto_perfil = ? WHERE id = ?";
+    await pool.query(sql, [req.file.filename, req.session.userId]);
+
+    res.json({type: 'done', message: 'S\'ha cambiat la foto de perfil', filename: req.file.filename});
+})
 
 app.get('/', (req, res) => {
     res.redirect('/dashboard');
@@ -381,7 +402,7 @@ app.get('/perfil', async (req, res) => {
 
     const balançHores = await calcularBalançHores(req.session.userId);
 
-    res.json({dataAlta: dataAlta, horesSetmanals: horesSetmanals, balançHores: balançHores});
+    res.json({dataAlta: dataAlta, horesSetmanals: horesSetmanals, balançHores: balançHores, fotoPerfil: result[0].foto_perfil});
 })
 
 app.post('/afegir-trajecte', async (req, res) => {
@@ -416,6 +437,88 @@ app.post('/afegir-trajecte', async (req, res) => {
     const sql = "INSERT INTO trajectes (user_id, dia, origen, desti, km) VALUES (?, ?, ?, ?, ?)";
     await pool.query(sql, [req.session.userId, date.toISOString().split('T')[0], origen, desti, km]);
     res.json({type: 'done', message: 'Trajecte afegit correctament'});
+})
+
+app.post('/cambiar-notificacions', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (isNaN(req.body.notificacions)) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const sql = "UPDATE users SET enviar_notificacions = ? WHERE id = ?";
+    await pool.query(sql, [+req.body.notificacions, req.session.userId]);
+    res.json({type: 'done', message: 'Notificacions actualitzades'});
+})
+
+app.get('/rebre-notificacions', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = `SELECT * FROM users WHERE id = ${req.session.userId}`;
+    const result = await pool.query(sql);
+
+    res.json({notificacions: !!result[0].enviar_notificacions});
+})
+
+app.post('/canviar-contrasenya', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const { oldPass, newPass } = req.body;
+
+    if (!oldPass || !newPass) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const sql = "SELECT * FROM users WHERE id = ?";
+    const result = await pool.query(sql, [req.session.userId]);
+
+    const hash = crypto.createHash('sha256').update(oldPass).digest('hex');
+    if (hash != result[0].pass) {
+        res.status(400).json({type: 'error', message: 'Contrasenya actual incorrecta'});
+        return res.end();
+    }
+
+    const newHash = crypto.createHash('sha256').update(newPass).digest('hex');
+    const sql2 = "UPDATE users SET pass = ? WHERE id = ?";
+    await pool.query(sql2, [newHash, req.session.userId]);
+
+    res.json({type: 'done', message: 'Contrasenya canviada correctament'});
+})
+
+app.post('/canviar-email', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const { email } = req.body;
+
+    if (!email) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    if (!email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)) {
+        res.status(400).json({type: 'error', message: 'Email invàlid'});
+        return res.end();
+    }
+
+    const sql = "UPDATE users SET email_notificacions = ? WHERE id = ?";
+    var result = await pool.query(sql, [email, req.session.userId]);
+    console.log(result)
+
+    res.json({type: 'done', message: 'Email canviat correctament'});
 })
 
 app.get('/trajectes', async (req, res) => {

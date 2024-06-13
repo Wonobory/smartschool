@@ -25,6 +25,17 @@ function carregarPagina(url, action = 0, dia = null) {
         });
 }
 
+function carregarPaginaPerfil(url) {
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            $('.perfil-b2')[0].innerHTML = html;
+            if (url == '/pages/configuracio_perfil.html') {
+                carregaConfiguracio()
+            }
+        });
+}
+
 function moveSelector(top) {
     document.getElementById('selector').style.top = top + 'px';
 }
