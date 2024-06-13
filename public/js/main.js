@@ -19,6 +19,19 @@ function carregarPagina(url, action = 0, dia = null) {
                 carregarPerfil();
             } else if (url == '/pages/afegir_trajecte.html') {
                 carregarAfegirTrajecte();
+            } else if (url == '/pages/kilometratge.html') {
+                carregarTrajectes()
+            }
+        });
+}
+
+function carregarPaginaPerfil(url) {
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            $('.perfil-b2')[0].innerHTML = html;
+            if (url == '/pages/configuracio_perfil.html') {
+                carregaConfiguracio()
             }
         });
 }

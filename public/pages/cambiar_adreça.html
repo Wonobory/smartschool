@@ -1,0 +1,25 @@
+<link rel="stylesheet" href="/css/configuracioPerfil.css">
+
+<div class="configuracio-container" style="border-top: 2px solid #4F4F4F;">
+    <div class="adreça-input" style="margin-top: 1em;">
+        <span>Nova adreça electrònica:</span>
+        <input type="text" id="new-email">
+    </div>
+    <div class="adreça-input">
+        <span>Repeteix la nova adreça electrònica:</span>
+        <input type="text" id="new-email-repeat">
+    </div>
+
+    <p>*Recorda que aquesta adreça només és per a rebre notificacions, l'adreça per iniciar sessió seguirà sent la mateixa, si necessites canviar l'adreça per iniciar sessió contacte amb l'uri.</p>
+</div>
+
+<div style="display: flex; flex-direction: row; justify-content: space-between;">
+    <div class="marcar-absencia-button" onclick="carregarPaginaPerfil('/pages/configuracio_perfil.html')" style="width: fit-content; margin-top: 1em;">
+        <img src="/svg/back.svg" alt="settings icon" class="icon-small">
+        <span id="marcar-absencia-text">Torna</span>
+    </div>
+    
+    <div class="marcar-absencia-button" onclick="cambiarEmail()" style="width: fit-content; margin-top: 1em; background-color: #7BBB5D; padding-inline: 2em;">
+        <span id="marcar-absencia-text">Canvia</span>
+    </div>
+</div>

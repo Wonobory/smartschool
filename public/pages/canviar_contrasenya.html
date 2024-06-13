@@ -1,0 +1,29 @@
+<link rel="stylesheet" href="/css/configuracioPerfil.css">
+
+<div class="configuracio-container" style="border-top: 2px solid #4F4F4F;">
+    <div class="adreça-input" style="margin-top: 1em;">
+        <span>Contrasenya actual:</span>
+        <input type="password" id="old-password">
+    </div>
+    
+    <div class="adreça-input" style="margin-top: 1em;">
+        <span>Nova contrasenya:</span>
+        <input type="password" id="new-password">
+    </div>
+    <div class="adreça-input">
+        <span>Repeteix la nova contrasenya:</span>
+        <input type="password" id="new-password-repeat">
+    </div>
+
+</div>
+
+<div style="display: flex; flex-direction: row; justify-content: space-between; margin-top: 3em;">
+    <div class="marcar-absencia-button" onclick="carregarPaginaPerfil('/pages/configuracio_perfil.html')" style="width: fit-content; margin-top: 1em;">
+        <img src="/svg/back.svg" alt="settings icon" class="icon-small">
+        <span id="marcar-absencia-text">Torna</span>
+    </div>
+    
+    <div class="marcar-absencia-button" onclick="canviarContrasenya()" style="width: fit-content; margin-top: 1em; background-color: #7BBB5D; padding-inline: 2em;">
+        <span id="marcar-absencia-text">Canvia</span>
+    </div>
+</div>
