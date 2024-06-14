@@ -90,6 +90,20 @@ app.get('/', (req, res) => {
 });
 
 
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/login');
+    return res.end();
+})
+
+app.get('/admin', (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+    res.sendFile(path.join(__dirname, '/client/admin.html'));
+})
+
 app.get('/dashboard', (req, res) => {
     if (!req.session.userId) {
         res.redirect('/login');
@@ -402,7 +416,20 @@ app.get('/perfil', async (req, res) => {
 
     const balançHores = await calcularBalançHores(req.session.userId);
 
-    res.json({dataAlta: dataAlta, horesSetmanals: horesSetmanals, balançHores: balançHores, fotoPerfil: result[0].foto_perfil});
+    const nom = result[0].nom;
+    const cognom = result[0].cognom;
+
+    const sql2 = "SELECT * FROM rols WHERE id = ?";
+    const result2 = await pool.query(sql2, [result[0].role]);
+
+    if (result[0].genere) {
+        var rol = result2[0].nom_f;
+    } else {
+        var rol = result2[0].nom_m;
+    }
+   
+
+    res.json({dataAlta: dataAlta, horesSetmanals: horesSetmanals, balançHores: balançHores, fotoPerfil: result[0].foto_perfil, nom: nom, cognom: cognom, rol: rol});
 })
 
 app.post('/afegir-trajecte', async (req, res) => {
@@ -572,7 +599,7 @@ async function calcularBalançHores(user_id) {
     const absencies = await pool.query(sql2);
 
 
-    const sql3 = `SELECT * FROM dies_pendents WHERE id = ${user_id}`;
+    const sql3 = `SELECT * FROM dies_pendents WHERE user_id = ${user_id}`;
     const diesPendents = await pool.query(sql3);
 
     let horesTotals = 0;
@@ -586,12 +613,12 @@ async function calcularBalançHores(user_id) {
     for (var i = 0; i < absencies.length; i++) {
         if (!absencies[i].computen) { //revisa si s'han de pagar o no
             const horari = JSON.parse(absencies[i].horari_esperat);
-            horesTotals -= contarHores(horari);
+            horesTotals -= contarHores(horari);  
         }
     }
 
     for (var i = 0; i < diesPendents.length; i++) {
-        const horari = JSON.parse(diesPendents[i].horari_esperat);
+        const horari = JSON.parse(diesPendents[i].horari_esperat);  
         horesTotals -= contarHores(horari);
     }
 
@@ -693,6 +720,11 @@ async function buscarUsuarisQueNoHanValidat() {
         const sql2 = `SELECT * FROM absencies WHERE user_id = ${usuarisAValidar[i].user_id} AND dia = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
         const result2 = await pool.query(sql2)
         if (result2.length > 0) continue
+
+        //revisa si a dies pendents ja ha estat afegit
+        const sql4 = "SELECT * FROM dies_pendents WHERE user_id = ? AND dia = DATE_SUB(CURDATE(), INTERVAL 1 DAY)"
+        const result4 = await pool.query(sql4, [usuarisAValidar[i].user_id])
+        if (result4.length > 0) continue
 
         const sql3 = `INSERT INTO dies_pendents (user_id, dia, horari_esperat) VALUES (${usuarisAValidar[i].user_id}, DATE_SUB(CURDATE(), INTERVAL 1 DAY), '${JSON.stringify(usuarisAValidar[i].horari_esperat)}')`
         await pool.query(sql3)
