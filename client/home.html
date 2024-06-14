@@ -27,9 +27,17 @@
     <script defer src="/js/configuracio.js"></script>
     
 
+    <link rel="stylesheet" href="/css/afegirTrajecte.css">
+    <link rel="stylesheet" href="/css/configuracioPerfil.css">
+    <link rel="stylesheet" href="/css/kilometratge.css">
+
     <link rel="stylesheet" href="/basicMenu.css">
     <link rel="stylesheet" href="/css/modificarHorari.css">
     <link rel="stylesheet" href="/css/marcarAbsencia.css">
+
+    <link rel="stylesheet" href="/css/perfil.css">
+
+    <link rel="stylesheet" href="/css/registreMensual.css">
 </head>
 <body>
     <nav class="sidebar collapsed">
@@ -39,7 +47,7 @@
         <div class="menu-option" onclick="seleccionar(3)"><img src="/svg/list.svg" alt="list icon"><li class="collapsed-text">Dies pendents</li><img class="icon-small notificacio-pendent" src="/svg/exclamation.svg"></div>
         <div class="menu-option" onclick="seleccionar(4)"><img src="/svg/calendar.svg" alt="calendar icon"><li class="collapsed-text">Registre mensual</li></div>
         <div class="menu-option" onclick="seleccionar(5)"><img src="/svg/profile.svg" alt="profile icon"><li class="collapsed-text">Perfil</li></div>
-        <div class="menu-option"><img src="/svg/close.svg" alt="close icon"><li class="collapsed-text">Tancar sessió</li></div>
+        <div class="menu-option" onclick="seleccionar(6)"><img src="/svg/close.svg" alt="close icon"><li class="collapsed-text">Tancar sessió</li></div>
         <div class="selector" id="selector"></div>
     </nav>
 

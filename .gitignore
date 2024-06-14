@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 public/uploads/*
+!public/uploads/default.jpg

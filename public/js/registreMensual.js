@@ -1,4 +1,5 @@
 const MOTIUS = ["Festiu", "Canvi de torn", "Personal", "Absentisme", "Baixa mèdica", "Permís retribuït", "Vacances"];
+const MESOS = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
 
 function carregarRegistre() {
     axios.get('/registre-mensual').then(res => {
@@ -56,6 +57,7 @@ function carregarRegistre() {
             registres.appendChild(div);
         }
         $('#hores-totals-del-mes')[0].innerHTML = `${horesTotals.toFixed(2)}h`;
+        $('#mes-any')[0].innerHTML = `${MESOS[parseInt(data[0].dia.slice(5, 7))-1].toUpperCase()} ${data[0].dia.slice(0, 4)}`;
         
     }).catch(err => {
         console.error(err.response.data.message);

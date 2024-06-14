@@ -62,6 +62,15 @@ function seleccionar(num) {
             moveSelector(286);
             carregarPagina('/pages/perfil.html')
             break;
+        case 6:
+            axios.get('/logout')
+                .then(function(response) {
+                    window.location.href = '/login';
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+            break;
     }
 }
 
