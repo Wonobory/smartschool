@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin dashboard</title>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/axios.js"></script>
+    
+    <script defer src="/js/adminPanel.js"></script>
+    <script defer src="/js/mainAdmin.js"></script>
+    
+    <link rel="stylesheet" href="/css/adminPage.css">
+</head>
+<body>
+    <div class="main-center">
+        
+        <nav class="main-navbar">
+            <div style="width: 100%; display: flex; align-items: center;justify-content: center; margin-top: 2em; margin-bottom: 2em;">
+                <img src="/img/logos/logo_smart_transparent.png" alt="" class="logo">
+            </div>
+            
+            <ul>
+                <li>Treballadors</li>
+                <li>Trajectes</li>
+            </ul>
+        </nav>
+
+        <div style="width: 100%; height: 100%; display: flex; justify-content: center;">
+            <div class="content" id="output" style="width: 70%;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2em; margin-top: 2em;">
+                    <h3>Treballadors</h3>
+                
+                    <button>Afegir un nou treballador</button>
+                </div>
+                
+                <table>
+                    <tbody class="treballadors-table">
+                        <tr>
+                            <th>ID</th>
+                
+                            <th>Nom</th>
+                            <th>Cognoms</th>
+                            <th>Rol</th>
+                
+                            <th>Hores setmanals</th>
+                            <th>Balanç hores extres</th>
+                
+                            <th>Estat</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+</body>
+</html>

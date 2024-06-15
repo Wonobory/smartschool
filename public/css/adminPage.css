@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    height: 100%;
+    margin: 0;
+}
+
+html {
+    height: 100%;
+
+}
+
+.main-center {
+    height: 100%;
+    width: 100%;
+
+    display: flex;
+}
+
+.content {
+    padding: 2em;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    padding: 0.7em;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: black;
+    cursor: pointer;
+}
+
+li:hover {
+    text-decoration: underline;
+    
+}
+
+nav {
+    height: 100%;
+    background-color: #EAE8FF;
+
+    width: 10em;
+    min-width: 10em;
+
+    padding: 1em;
+
+    border-right: 2px solid #4a90e2;
+}
+
+.logo {
+    height: 60px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  /* Style table headers */
+  th {
+    background-color: #f2f2f2;
+  }
+  
+  /* Style table rows */
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  /* Style table cells */
+  td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+    text-align: center;
+  }
+
+h3 {
+    margin: 0;
+    margin-bottom: 0.5em;
+    margin-top: 0.5em;
+}
+
+tr {
+    cursor: pointer;
+}
+
+tr:first-child {
+    cursor: default;
+}
+
+tr:hover {
+    background-color: #e5e5e5;
+}
+

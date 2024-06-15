@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin dashboard</title>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/axios.js"></script>
+
+    <script defer src="/js/mainAdmin.js"></script>
+    <script defer src="/js/adminPanel.js"></script>
+
+    <link rel="stylesheet" href="/css/adminPage.css">
+    <link rel="stylesheet" href="/css/treballador.css">
+</head>
+<body>
+    <div class="main-center">
+        
+        <nav class="main-navbar">
+            <div style="width: 100%; display: flex; align-items: center;justify-content: center; margin-top: 2em; margin-bottom: 2em;">
+                <img src="/img/logos/logo_smart_transparent.png" alt="" class="logo">
+            </div>
+            
+            <ul>
+                <li onclick="window.location.href = '/admin'">Treballadors</li>
+                <li>Trajectes</li>
+            </ul>
+        </nav>
+
+        <div style="width: 100%; display: flex; justify-content: center;">
+            <div class="content" style="width: 70%;" id="output">
+                <div class="profile">
+                    <img src="" alt="" id="foto-perfil">
+                    <div>
+                        <span id="nom"></span>
+                        <span id="cognom"></span>
+                        <span id="rol"></span>
+                    </div>
+                </div>
+                <div class="stats">
+                    <div class="treballador-linea">
+                        <div class="treballador-apartat">
+                            <span>Hores contracte:</span>
+                            <span id="hores-contracte"></span>
+                        </div>
+                        <div class="treballador-apartat">
+                            <span>Trajectes:</span>
+                            <span id="trajectes"></span>
+                            <a id="info-trajectes" href="">+Info</a>
+                        </div>
+                    </div>
+                    <div class="treballador-linea">
+                        <div class="treballador-apartat">
+                            <span>Balanç d'hores extres:</span>
+                            <span id="balanç-hores"></span>
+                            <a href="">+Info</a>
+                        </div>
+                        <div class="treballador-apartat">
+                            <span>Hores validades:</span>
+                            <span id="hores-validades"></span>
+                            <a href="">+Info</a>
+                        </div>
+                    </div>
+                    <div class="treballador-linea">
+                        <div class="treballador-apartat">
+                            <span>Absències:</span>
+                            <span id="absencies"></span>
+                            <a href="">+Info</a>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>
+        
+    </div>
+</body>
+</html>

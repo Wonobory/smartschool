@@ -4,17 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin dashboard</title>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/axios.js"></script>
+
+    <script src="/js/mainAdmin.js"></script>
+    <script src="/js/adminPanel.js"></script>
+    <link rel="stylesheet" href="/css/adminPage.css">
 </head>
 <body>
     <div class="main-center">
+        
         <nav class="main-navbar">
+            <div style="width: 100%; display: flex; align-items: center;justify-content: center; margin-top: 2em; margin-bottom: 2em;">
+                <img src="/img/logos/logo_smart_transparent.png" alt="" class="logo">
+            </div>
+            
             <ul>
-                <li>Treballadors</li>
+                <li onclick="carregarPaginaAdmin('/admin_pages/treballadors.html')">Treballadors</li>
                 <li>Trajectes</li>
             </ul>
         </nav>
 
-        <div class="content">
+        <div class="content" id="output">
 
         </div>
     </div>
