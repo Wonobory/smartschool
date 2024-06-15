@@ -103,7 +103,7 @@ app.get('/logout', (req, res) => {
 })
 
 app.get('/admin', (req, res) => {
-    if (!req.session.userId) {
+    if (!req.session.userId || req.session.role == 1) {
         res.redirect('/login');
         return res.end();
     }
@@ -111,7 +111,7 @@ app.get('/admin', (req, res) => {
 })
 
 app.get('/admin/treballador/:id', (req, res) => {
-    if (!req.session.userId) {
+    if (!req.session.userId || req.session.role == 1) {
         res.redirect('/login');
         return res.end();
     }
@@ -141,7 +141,7 @@ app.get('/admin/treballador/:id', (req, res) => {
         const sql5 = `SELECT * FROM dies_pendents WHERE user_id = ?`
         const diesPendents = await pool.query(sql5, [req.params.id])
 
-        const sql6 = `SELECT * FROM trajectes WHERE user_id = ?`
+        const sql6 = `SELECT * FROM trajectes WHERE user_id = ? AND pagat = 0`
         const trajectes = await pool.query(sql6, [req.params.id])
 
         let totalKm = 0;
@@ -175,6 +175,65 @@ app.get('/admin/treballador/:id', (req, res) => {
             foto_perfil: result[0].foto_perfil,
         }
             
+        const jsonString = JSON.stringify(jsonData);
+
+
+        const scriptTag = `<script>
+            const dades = ${jsonString};
+        </script>`;
+
+        const modifiedData = `${scriptTag}\n${data}`;
+
+        res.setHeader('Content-Type', 'text/html');
+        res.send(modifiedData);
+    });
+})
+
+app.get('/admin/trajectes/:id', async (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    console.log(req.session)
+    const sql = "SELECT * FROM users WHERE id = ?";
+    const result = await pool.query(sql, [req.params.id])
+
+    if (result.length == 0) {
+        res.sendFile(path.join(__dirname, '/client/404.html'));
+        return res.end();
+    }
+
+    const filePath = path.join(__dirname, '/client/trajectes.html');
+
+
+    // Lee el archivo
+    fs.readFile(filePath, 'utf8', async (err, data) => {
+        if (err) {
+            return res.status(500).send('Error al leer el archivo');
+        }
+
+        const rol = await getRols(result[0].role, result[0].genere);
+        console.log(rol[0]);
+
+        const trajectes = await getTrajectes(req.params.id);
+
+        let totalKm = 0;
+        trajectes.forEach(trajecte => {
+            totalKm += trajecte.km;
+        })
+
+        const jsonData = {
+            id: result[0].id,
+            nom: result[0].nom,
+            cognom: result[0].cognom,
+            rol: result[0].role == -1 ? 'Inactiu' : (result[0].genere ? rol[0].nom_f : rol[0].nom_m),
+            totalKm: totalKm,
+            trajectes: trajectes,
+            foto_perfil: result[0].foto_perfil,
+        }
+            
+        console.log(rol.nom_f)
         const jsonString = JSON.stringify(jsonData);
 
 
@@ -667,7 +726,7 @@ app.get('/trajectes', async (req, res) => {
 })
 
 app.get('/treballadors', async (req, res) => {
-    if (!req.session.userId) {
+    if (!req.session.userId || req.session.role == 1) {
         res.redirect('/login');
         return res.end();
     }
@@ -706,6 +765,44 @@ app.get('/treballadors', async (req, res) => {
     }
 
     return res.json(toReturn);
+})
+
+app.post('/admin/pagar-trajecte', async (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.id || typeof req.body.id != 'object') {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const sql = "UPDATE trajectes SET pagat = 1 WHERE id = ?";
+    for (var i = 0; i < req.body.id.length; i++) {
+        await pool.query(sql, [req.body.id[i]]);
+    }
+
+    res.json({type: 'done', message: 'Trajectes pagats correctament'});
+})
+
+app.post('/admin/eliminar-trajecte', async (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.id || typeof req.body.id != 'object') {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const sql = "DELETE FROM trajectes WHERE id = ?";
+    for (var i = 0; i < req.body.id.length; i++) {
+        await pool.query(sql, [req.body.id[i]]);
+    }
+
+    res.json({type: 'done', message: 'Trajectes eliminats correctament'});
 })
 
 function calcularHoresSetmanals(horari) {
@@ -856,6 +953,20 @@ async function buscarUsuarisQueNoHanValidat() {
         const sql3 = `INSERT INTO dies_pendents (user_id, dia, horari_esperat) VALUES (${usuarisAValidar[i].user_id}, DATE_SUB(CURDATE(), INTERVAL 1 DAY), '${JSON.stringify(usuarisAValidar[i].horari_esperat)}')`
         await pool.query(sql3)
     }
+}
+
+async function getRols(id) {
+    const sql2 = "SELECT * FROM rols WHERE id = ?";
+    const result2 = await pool.query(sql2, [id])
+
+    return result2;
+}
+
+async function getTrajectes(id) {
+    const sql = `SELECT * FROM trajectes WHERE user_id = ?`;
+    const result = await pool.query(sql, [id]);
+
+    return result;
 }
 
 //Cada dia a les 2:10 de la nit es revisara qui no ha validat l'horari

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin dashboard</title>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/axios.js"></script>
+
+
+    <link rel="stylesheet" href="/bootstrap/bootstrap.css">
+    <script defer src="/bootstrap/bootstrap.js"></script>
+
+    <script defer src="/js/mainAdmin.js"></script>
+    <script defer src="/js/adminPanel.js"></script>
+
+    <link rel="stylesheet" href="/css/adminPage.css">
+    <link rel="stylesheet" href="/css/treballador.css">
+</head>
+<body>
+    <div class="main-center">
+        
+        <nav class="main-navbar">
+            <div style="width: 100%; display: flex; align-items: center;justify-content: center; margin-top: 2em; margin-bottom: 2em;">
+                <img src="/img/logos/logo_smart_transparent.png" alt="" class="logo">
+            </div>
+            
+            <ul>
+                <li onclick="window.location.href = '/admin'">Treballadors</li>
+                <li>Trajectes</li>
+            </ul>
+        </nav>
+
+        <div style="width: 100%; display: flex; justify-content: center;">
+            <div class="content" style="width: 70%;" id="output">
+                <div style="display: flex; justify-content: space-between;">
+                    <div class="profile">
+                        <img src="/uploads/default.jpg" alt="" id="foto-perfil">
+                        <div>
+                            <span id="nom"></span>
+                            <span id="cognom"></span>
+                            <span id="rol"></span>
+                        </div>
+                    </div>
+
+                        <div style="display: flex; align-items: end;">
+                        <div>
+                            <input type="checkbox" id="mostrar-pagats">
+                            <span>Mostrar trajectes ja pagats</span>                            
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 3em; display: flex; justify-content: space-between;">
+                    <div style="display: flex; align-items: end;">
+                        <button onclick="seleccionarTots()" type="button" class="btn btn-secondary" style="height: fit-content;">Seleccionar tots</button>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <span>Km trajectes seleccionats:</span>
+                        <span style="font-size: 20px; font-weight: 700;" id="km-trajectes">20.00km</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                            <span style="font-size: 17px; font-weight: 600; text-decoration: underline;">Accions:</span>
+                        
+                        
+                        <div>
+                            <button type="button" class="btn btn-success" onclick="pagarTrajectes()">Marcar com a pagats</button>
+                            <button type="button" class="btn btn-danger" onclick="eliminarTrajectes()">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <table style="margin-top: 1em;">
+                    <tbody id="trajectes-table" class="trajectes-table">
+                        <tr>
+                            <th>Selecció</th>
+                            <th>Data</th>
+                            <th>Origen</th>
+                            <th>Destí</th>
+                            <th>Distancia</th>
+                            <th>Estat</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div> 
+        </div>
+        
+    </div>
+</body>
+</html>
