@@ -731,8 +731,14 @@ app.get('/treballadors', async (req, res) => {
         return res.end();
     }
 
-    const sql = "SELECT * FROM users"
-    const result = await pool.query(sql);
+    if (!req.query.query) {
+        const sql = "SELECT * FROM users"
+        var result = await pool.query(sql);
+    } else {
+        const sql = `SELECT * FROM users WHERE nom LIKE '%${req.query.query}%' OR cognom LIKE '%${req.query.query}%'`
+        var result = await pool.query(sql);
+    }
+    
     const sql2 = "SELECT * FROM rols"
     const result2 = await pool.query(sql2);
 

@@ -1,6 +1,12 @@
 function carregarTreballadors() {
-    axios.get('/treballadors').then(res => {
+    axios.get('/treballadors', {params: {query: $('#search-bar')[0].value}}).then(res => {
         const table = $('.treballadors-table')[0]
+
+        console.log(res.data)
+
+        while (table.rows.length > 1) {
+            table.deleteRow(1);
+        }
 
         res.data.forEach(treballador => {
             table.innerHTML += `
