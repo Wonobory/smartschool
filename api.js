@@ -9,6 +9,8 @@ const crypto = require("crypto");
 const { promisify } = require('util')
 session = require('express-session');
 
+const fs = require('fs');
+
 
 const multer = require('multer');
 
@@ -69,6 +71,10 @@ if (!req.session.userId) {
 
 app.post('/update-pfp', upload.single('file'), async (req, res) => {
     if (!req.session.userId) {
+        if (req.session.role == 1) {
+            res.redirect('/admin');
+            return res.end();
+        }
         res.redirect('/login');
         return res.end();
     }
@@ -101,7 +107,86 @@ app.get('/admin', (req, res) => {
         res.redirect('/login');
         return res.end();
     }
-    res.sendFile(path.join(__dirname, '/client/admin.html'));
+    res.sendFile(path.join(__dirname, '/client/treballadors.html'));
+})
+
+app.get('/admin/treballador/:id', (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const filePath = path.join(__dirname, '/client/treballador.html');
+
+    // Lee el archivo
+    fs.readFile(filePath, 'utf8', async (err, data) => {
+        if (err) {
+            return res.status(500).send('Error al leer el archivo');
+        }
+
+        const sql = "SELECT * FROM users WHERE id = ?";
+        const result = await pool.query(sql, [req.params.id])
+
+        const sql2 = "SELECT * FROM rols WHERE id = ?";
+        const result2 = await pool.query(sql2, [result[0].role])
+
+        const rol = result2.find(x => x.id == result[0].role);
+
+        const sql3 = `SELECT * FROM horaris_validats WHERE MONTH(dia) = MONTH(CURDATE()) AND YEAR(dia) = YEAR(CURDATE()) AND user_id = ?;`
+        const horarisValidats = await pool.query(sql3, [req.params.id])
+
+        const sql4 = `SELECT * FROM absencies WHERE MONTH(dia) = MONTH(CURDATE()) AND YEAR(dia) = YEAR(CURDATE()) AND user_id = ?;`
+        const absencies = await pool.query(sql4, [req.params.id])
+
+        const sql5 = `SELECT * FROM dies_pendents WHERE user_id = ?`
+        const diesPendents = await pool.query(sql5, [req.params.id])
+
+        const sql6 = `SELECT * FROM trajectes WHERE user_id = ?`
+        const trajectes = await pool.query(sql6, [req.params.id])
+
+        let totalKm = 0;
+        trajectes.forEach(trajecte => {
+            totalKm += trajecte.km;
+        })
+
+        let horesValidades = 0;
+        horarisValidats.forEach(horari => {
+            horesValidades += contarHores(JSON.parse(horari.horari));
+        })
+
+        let absenciesH = 0;
+        absencies.forEach(absencia => {
+            if (!absencia.computen) {
+                absenciesH += contarHores(JSON.parse(absencia.horari_esperat));
+            }
+        })
+
+        const jsonData = {
+            id: result[0].id,
+            nom: result[0].nom,
+            cognom: result[0].cognom,
+            role: result[0].role == -1 ? 'Inactiu' : (result[0].genere ? rol.nom_f : rol.nom_m),
+            horesContracte: result[0].hores_contracte,
+            trajectes: totalKm,
+            balançHores: await calcularBalançHores(req.params.id),
+            horesValidades: horesValidades,
+            absencies: absencies.length,
+            absenciesHores: absenciesH,
+            foto_perfil: result[0].foto_perfil,
+        }
+            
+        const jsonString = JSON.stringify(jsonData);
+
+
+        const scriptTag = `<script>
+            const dades = ${jsonString};
+        </script>`;
+
+        const modifiedData = `${scriptTag}\n${data}`;
+
+        res.setHeader('Content-Type', 'text/html');
+        res.send(modifiedData);
+    });
 })
 
 app.get('/dashboard', (req, res) => {
@@ -578,6 +663,48 @@ app.get('/trajectes', async (req, res) => {
     }
 
     console.log(toReturn);
+    return res.json(toReturn);
+})
+
+app.get('/treballadors', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = "SELECT * FROM users"
+    const result = await pool.query(sql);
+    const sql2 = "SELECT * FROM rols"
+    const result2 = await pool.query(sql2);
+
+    let toReturn = [];
+    for (var i = 0; i < result.length; i++) {
+        /*
+        Response:
+        ID
+        Nom
+        Cognom
+        Rol (nom)
+        Hores setmanals
+        Balanç d'hores
+        Estat (si rol és -1 o no)
+        */
+
+        const rol = result2.find(x => x.id == result[i].role);
+        const horesSetmanals = calcularHoresSetmanals(JSON.parse(result[i].horari));
+        const balançHores = await calcularBalançHores(result[i].id);
+
+        toReturn.push({
+            id: result[i].id, 
+            nom: result[i].nom, 
+            cognom: result[i].cognom, 
+            rol: result[i].role == -1 ? 'Inactiu' : (result[i].genere ? rol.nom_f : rol.nom_m), 
+            horesSetmanals: horesSetmanals, 
+            balançHores: balançHores, 
+            estat: result[i].role == -1
+        });
+    }
+
     return res.json(toReturn);
 })
 
