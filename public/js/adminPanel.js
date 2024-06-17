@@ -1,3 +1,5 @@
+const MOTIUS = ["Festiu", "Canvi de torn", "Personal", "Absentisme", "Baixa mèdica", "Permís retribuït", "Vacances"];
+
 function carregarTreballadors() {
     axios.get('/treballadors', {params: {query: $('#search-bar')[0].value}}).then(res => {
         const table = $('.treballadors-table')[0]
@@ -59,6 +61,10 @@ function carregarTreballador(dades) {
 
     const infoTrajectes = $('#info-trajectes')[0]
     infoTrajectes.href = `/admin/trajectes/${dades.id}`
+
+    const infoBalanç = $('#info-balanç')[0]
+    infoBalanç.href = `/admin/hores/${dades.id}`
+
 }
 
 if (window.location.pathname === '/admin') {
@@ -73,6 +79,27 @@ if (window.location.pathname === '/admin') {
         carregarTrajectes()
     })
     contarKm()
+} else if (window.location.pathname.includes('/admin/hores')) {
+    carregarHores()
+    carregarInfo(dades.nom, dades.cognom, dades.rol, dades.foto_perfil)
+    carregarHoresMes()
+    gestionarDeFins()
+}
+
+function gestionarDeFins() {
+    const inputs = $('.defins')
+    inputs.each(i => {
+        console.log(inputs[i])
+        inputs[i].onchange = () => {
+            if (inputs[i].id == 'data-inici' && new Date($('#data-final')[0].value) < new Date(inputs[i].value)) {
+                $('#data-final')[0].value = inputs[i].value
+            } else if (inputs[i].id == 'data-final' && new Date($('#data-inici')[0].value) > new Date(inputs[i].value)) {
+                $('#data-inici')[0].value = inputs[i].value
+            }
+
+            carregarHoresMes()
+        }
+    })
 }
 
 function carregarInfo(nom, cognom, rol, fotoPerfil) {
@@ -207,4 +234,249 @@ function seleccionarTots() {
     for (var i = 0; i < checkboxes.length; i++) {
         checkboxes[i].checked = true
     }
+}
+
+function carregarHoresMes() {
+    axios.get('/admin/api/hores/' + dades.id, { params: {
+        from: $('#data-inici')[0].value,
+        to: $('#data-final')[0].value
+    }}).then(res => {
+        const table = $('#hores-table')[0]
+        let calendari = []
+
+        while (table.rows.length > 1) {
+            table.deleteRow(1);
+        }
+
+        console.log(res.data)
+    
+        res.data.hores_validades.forEach(hores => {
+            console.log(hores.horari)
+            let toAdd = {
+                data: hores.dia,
+                hores_validades: contarHores(JSON.parse(hores.horari)),
+                hores_esperades: contarHores(JSON.parse(hores.horari_esperat)),
+                canvi_en_balanç: contarHores(JSON.parse(hores.horari)) - contarHores(JSON.parse(hores.horari_esperat)),
+                type: 0,
+                id: hores.id
+            }
+
+            calendari.push(toAdd)
+        })
+
+        res.data.absencies.forEach(absencia => {
+            let toAdd = {
+                data: absencia.dia,
+                hores_validades: 0,
+                hores_esperades: contarHores(JSON.parse(absencia.horari_esperat)),
+                canvi_en_balanç: absencia.computen ? 0 : -contarHores(JSON.parse(absencia.horari_esperat)),
+                type: 1,
+                id: absencia.id,
+                motiu: MOTIUS[absencia.motiu-1]
+            }
+
+            calendari.push(toAdd)
+        })
+
+        res.data.dies_pendents.forEach(dia => {
+            let toAdd = {
+                data: dia,
+                hores_validades: 0,
+                hores_esperades: contarHores(JSON.parse(dia.horari_esperat)),
+                canvi_en_balanç: -contarHores(JSON.parse(dia.horari_esperat)),
+                type: 2,
+                id: dia.id
+            }
+
+            calendari.push(toAdd)
+        })
+
+        calendari.sort((a, b) => {
+            return new Date(b.data) - new Date(a.data)
+        })
+
+        let x = 0
+        calendari.forEach(dia => {
+            const data = adjustTimezone(dia.data).toISOString().split('T')[0].split('-').reverse().join('/')
+            if (dia.type != 1) {
+                table.innerHTML += `
+                    <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                        <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                        <td>${data}</td>
+                        <td>${dia.hores_validades.toFixed(2)}h</td>
+                        <td>${dia.hores_esperades.toFixed(2)}h</td>
+                        <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+                    </tr>
+                `
+            } else {
+                table.innerHTML += `
+                <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                    <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                    <td>${data}</td>
+                    <td><img src="/svg/alerta.svg" title="Motiu de l'absència: ${dia.motiu}">${dia.hores_validades.toFixed(2)}h</td>
+                    <td>${dia.hores_esperades.toFixed(2)}h</td>
+                    <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+                </tr>
+            ` 
+            }
+            x++
+        })
+    }).catch(err => {
+        console.error(err)
+    })
+}
+
+function carregarHores() {
+    var date = new Date();
+    $('#data-final')[0].value = new Date(date.getFullYear(), date.getMonth() + 1, 0+1).toISOString().split('T')[0] //ultim dia del mes
+    $('#data-inici')[0].value = new Date(date.getFullYear(), date.getMonth(), 1+1).toISOString().split('T')[0]
+
+    const table = $('#hores-table')[0]
+
+    $('#balanç-hores')[0].innerText = dades.balançHores.toFixed(2) + 'h'
+
+    /*
+    id: result[0].id,
+    nom: result[0].nom,
+    cognom: result[0].cognom,
+    rol: result[0].role == -1 ? 'Inactiu' : (result[0].genere ? rol[0].nom_f : rol[0].nom_m),
+    absencies: absencies,
+    hores_validades: hores_validades,
+    dies_pendents: diesPendents,
+    balançHores: await calcularBalançHores(req.params.id),
+    */
+
+    // {data, hores_validades, hores_esperades, canvi_en_balanç, type, id}
+    // type = 0 -> hores validades
+    // type = 1 -> absencies
+    // type = 2 -> dies pendents
+
+    let calendari = []
+
+    
+    dades.hores_validades.forEach(hores => {
+        console.log(hores.horari)
+        let toAdd = {
+            data: hores.dia,
+            hores_validades: contarHores(JSON.parse(hores.horari)),
+            hores_esperades: contarHores(JSON.parse(hores.horari_esperat)),
+            canvi_en_balanç: contarHores(JSON.parse(hores.horari)) - contarHores(JSON.parse(hores.horari_esperat)),
+            type: 0,
+            id: hores.id
+        }
+
+        calendari.push(toAdd)
+    })
+
+    dades.absencies.forEach(absencia => {
+        let toAdd = {
+            data: absencia.dia,
+            hores_validades: 0,
+            hores_esperades: contarHores(JSON.parse(absencia.horari_esperat)),
+            canvi_en_balanç: absencia.computen ? 0 : -contarHores(JSON.parse(absencia.horari_esperat)),
+            type: 1,
+            id: absencia.id,
+            motiu: MOTIUS[absencia.motiu-1]
+        }
+
+        calendari.push(toAdd)
+    })
+
+    dades.dies_pendents.forEach(dia => {
+        let toAdd = {
+            data: dia,
+            hores_validades: 0,
+            hores_esperades: contarHores(JSON.parse(dia.horari_esperat)),
+            canvi_en_balanç: -contarHores(JSON.parse(dia.horari_esperat)),
+            type: 2,
+            id: dia.id
+        }
+
+        calendari.push(toAdd)
+    })
+
+    calendari.sort((a, b) => {
+        return new Date(b.data) - new Date(a.data)
+    })
+
+    let x = 0
+    calendari.forEach(dia => {
+        const data = adjustTimezone(dia.data).toISOString().split('T')[0].split('-').reverse().join('/')
+        if (dia.type != 1) {
+            table.innerHTML += `
+                <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                    <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                    <td>${data}</td>
+                    <td>${dia.hores_validades.toFixed(2)}h</td>
+                    <td>${dia.hores_esperades.toFixed(2)}h</td>
+                    <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+                </tr>
+            `
+        } else {
+            table.innerHTML += `
+            <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                <td>${data}</td>
+                <td><img src="/svg/alerta.svg" title="Motiu de l'absència: ${dia.motiu}">${dia.hores_validades.toFixed(2)}h</td>
+                <td>${dia.hores_esperades.toFixed(2)}h</td>
+                <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+            </tr>
+        ` 
+        }
+        x++
+    })
+
+    x = 0
+    calendari.forEach(dia => {
+        
+        $(`input[data-i="${x}"]`)[0].addEventListener('click', (e) => {
+            e.stopPropagation()
+        })
+        x++
+    })
+}
+
+function eliminarRegistresHores() {
+    let horesId = []
+    const checkboxes = $('.hores')
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            horesId.push({
+                id: parseInt(checkboxes[i].getAttribute('data-id')),
+                type: parseInt(checkboxes[i].getAttribute('data-type'))
+            })
+        }
+    }
+
+    axios.post('/admin/eliminar-registre', {
+        id: horesId
+    }).then(res => {
+        console.log(res.data)
+        window.location.reload()
+    }).catch(err => {
+        console.error(err)
+    })
+    console.log(horesId)
+
+}
+
+function seleccionarTotsHores() {
+    const checkboxes = $('.hores')
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = true
+    }
+}
+
+function contarHores(horari) {
+    let count = 0;
+    for (var i = 0; i < horari.length; i++) {
+        const time = horari[i][0].split(':');
+        const time2 = horari[i][1].split(':');
+
+        const h1 = parseInt(time[0]) + parseInt(time[1]) / 60;
+        const h2 = parseInt(time2[0]) + parseInt(time2[1]) / 60;
+
+        count += h2 - h1;
+    }
+    return count;
 }
