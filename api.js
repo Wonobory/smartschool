@@ -71,10 +71,6 @@ if (!req.session.userId) {
 
 app.post('/update-pfp', upload.single('file'), async (req, res) => {
     if (!req.session.userId) {
-        if (req.session.role == 1) {
-            res.redirect('/admin');
-            return res.end();
-        }
         res.redirect('/login');
         return res.end();
     }
@@ -246,6 +242,119 @@ app.get('/admin/trajectes/:id', async (req, res) => {
         res.setHeader('Content-Type', 'text/html');
         res.send(modifiedData);
     });
+})
+
+app.get('/admin/api/hores/:id', async (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = "SELECT * FROM users WHERE id = ?";
+    const result = await pool.query(sql, [req.params.id])
+
+    if (result.length == 0) {
+        res.json({type: 'error', message: 'Usuari no trobat'});
+        return res.end();
+    }
+
+    /*
+    from YYYY-MM-DD
+    to YYYY-MM-DD
+    */
+
+    const { from, to } = req.query;
+    if (!from || !to) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+    
+    const sqlHorarisValidats = `SELECT * FROM horaris_validats WHERE user_id = ? AND dia >= ? AND dia <= ?`;
+    const horarisValidats = await pool.query(sqlHorarisValidats, [req.params.id, from, to]);
+
+    const sqlAbsencies = `SELECT * FROM absencies WHERE user_id = ? AND dia >= ? AND dia <= ?`;
+    const absencies = await pool.query(sqlAbsencies, [req.params.id, from, to]);
+
+    const sqlDiesPendents = `SELECT * FROM dies_pendents WHERE user_id = ? AND dia >= ? AND dia <= ?`;
+    const diesPendents = await pool.query(sqlDiesPendents, [req.params.id, from, to]);
+
+    res.json({hores_validades: horarisValidats, absencies: absencies, dies_pendents: diesPendents});
+})
+
+app.get('/admin/hores/:id', async (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = "SELECT * FROM users WHERE id = ?";
+    const result = await pool.query(sql, [req.params.id])
+
+    if (result.length == 0) {
+        res.sendFile(path.join(__dirname, '/client/404.html'));
+        return res.end();
+    }
+
+    const filePath = path.join(__dirname, '/client/hores.html');
+
+    // Lee el archivo
+    fs.readFile(filePath, 'utf8', async (err, data) => {
+        if (err) {
+            return res.status(500).send('Error al leer el archivo');
+        }
+
+        const rol = await getRols(result[0].role, result[0].genere);
+
+        const hores_validades = await getHoresValidades(req.params.id);
+        const absencies = await getAbsencies(req.params.id);
+        const diesPendents = await getDiesPendents(req.params.id);
+
+        const jsonData = {
+            id: result[0].id,
+            nom: result[0].nom,
+            cognom: result[0].cognom,
+            rol: result[0].role == -1 ? 'Inactiu' : (result[0].genere ? rol[0].nom_f : rol[0].nom_m),
+            absencies: absencies,
+            hores_validades: hores_validades,
+            dies_pendents: diesPendents,
+            balançHores: await calcularBalançHores(req.params.id),
+            foto_perfil: result[0].foto_perfil,
+        }
+            
+        const jsonString = JSON.stringify(jsonData);
+
+        const scriptTag = `<script>
+            const dades = ${jsonString};
+        </script>`;
+
+        const modifiedData = `${scriptTag}\n${data}`;
+
+        res.setHeader('Content-Type', 'text/html');
+        res.send(modifiedData);
+    });
+})
+
+app.post('/admin/eliminar-registre', async (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.id || typeof req.body.id != 'object') {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    // type = 0 -> hores validades
+    // type = 1 -> absencies
+    // type = 2 -> dies pendents
+
+    const sql = "DELETE FROM ?? WHERE id = ?";
+    for (var i = 0; i < req.body.id.length; i++) {
+        await pool.query(sql, [req.body.id[i].type == 0 ? 'horaris_validats' : (req.body.id[i].type == 1 ? 'absencies' : 'dies_pendents'), req.body.id[i].id]);
+    }
+
+    res.json({type: 'done', message: 'Registres eliminats correctament'});
 })
 
 app.get('/dashboard', (req, res) => {
@@ -444,13 +553,13 @@ app.post('/absencia', async (req, res) => {
     }
 
     /*
-    1: Festiu
+    1: Festiu              -> Computen igual
     2: Canvi de torn
     3: Personal
     4: Absentisme
     5: Baixa mèdica         
-    6: Permís retribuït     
-    7: Vacances             - Computen igual
+    6: Permís retribuït     -> Computen igual
+    7: Vacances             -> Computen igual
     */
     const { motiu } = req.body;
 
@@ -469,7 +578,7 @@ app.post('/absencia', async (req, res) => {
     let computenHores = false;
 
     //Casos en els que no hem de restar les hores realitzades
-    if (motiu == 7) computenHores = true;
+    if (motiu == 1 || motiu == 6 || motiu == 7) computenHores = true;
 
     const sql3 = `INSERT INTO absencies (user_id, dia, motiu, horari_esperat, computen) VALUES (${req.session.userId}, '${avui}', '${motiu}', '${JSON.stringify(horariEsperat)}', ${+computenHores})`;
     await pool.query(sql3);
@@ -860,6 +969,23 @@ function eliminarDiesPendents(user_id, dia) {
     pool.query(sql);
 }
 
+async function getDiesPendents(user_id) {
+    const sql = `SELECT * FROM dies_pendents WHERE user_id = ${user_id}`;
+    const result = await pool.query(sql);
+    return result;
+}
+
+async function getAbsencies(user_id) {
+    const sql = `SELECT * FROM absencies WHERE user_id = ${user_id}`;
+    const result = await pool.query(sql)
+    return result;
+}
+
+async function getHoresValidades(user_id) {
+    const sql = `SELECT * FROM horaris_validats WHERE user_id = ${user_id}`;
+    const result = await pool.query(sql);
+    return result;
+}
 //Busca l'horari que toca el dia d'avui
 function horariAvui(horari, avui=new Date().getDay()) {
     for (var i = 0; i < horari.length; i++) {

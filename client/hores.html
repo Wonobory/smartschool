@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin dashboard</title>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/axios.js"></script>
+
+
+    <link rel="stylesheet" href="/bootstrap/bootstrap.css">
+    <script defer src="/bootstrap/bootstrap.js"></script>
+
+    <script defer src="/js/mainAdmin.js"></script>
+    <script defer src="/js/adminPanel.js"></script>
+
+    <link rel="stylesheet" href="/css/adminPage.css">
+    <link rel="stylesheet" href="/css/treballador.css">
+</head>
+<body>
+    <div class="main-center">
+        
+        <nav class="main-navbar">
+            <div style="width: 100%; display: flex; align-items: center;justify-content: center; margin-top: 2em; margin-bottom: 2em;">
+                <img src="/img/logos/logo_smart_transparent.png" alt="" class="logo">
+            </div>
+            
+            <ul>
+                <li onclick="window.location.href = '/admin'">Treballadors</li>
+                <li>Trajectes</li>
+            </ul>
+        </nav>
+
+        <div style="width: 100%; display: flex; justify-content: center;">
+            <div class="content" style="width: 70%;" id="output">
+                <div style="display: flex; justify-content: space-between;">
+                    <div class="profile">
+                        <img src="/uploads/default.jpg" alt="" id="foto-perfil">
+                        <div>
+                            <span id="nom"></span>
+                            <span id="cognom"></span>
+                            <span id="rol"></span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: end;">
+
+                        <div style="display: flex;">
+                            <div style="display: flex; flex-direction: column; margin-right: 1em;">
+                                De:
+                                <input type="date" id="data-inici" class="defins">
+                            </div>
+
+                            <div style="display: flex; flex-direction: column;">
+                                Fins:
+                                <input type="date" id="data-final" class="defins">
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 3em; display: flex; justify-content: space-between;">
+                    <div style="display: flex; align-items: end;">
+                        <button onclick="seleccionarTotsHores()" type="button" class="btn btn-secondary" style="height: fit-content;">Seleccionar tots</button>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <span>Balanç d'hores extres final:</span>
+                        <span style="font-size: 20px; font-weight: 700;" id="balanç-hores">2.00h</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 17px; font-weight: 600; text-decoration: underline;">Accions:</span>
+                        
+                        
+                        <div>
+                            <button type="button" class="btn btn-danger" onclick="eliminarRegistresHores()">Eliminar</button>
+                            <button type="button" class="btn btn-primary" onclick="" style="">Regularitzar hores extres</button>
+                        </div>
+                    </div>
+                </div>
+
+                <table style="margin-top: 1em;">
+                    <tbody id="hores-table" class="hores-table">
+                        <tr>
+                            <th>Selecció</th>
+                            <th>Data</th>
+                            <th>Hores validades</th>
+                            <th>Hores esperades</th>
+                            <th>Balanç</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div> 
+        </div>
+        
+    </div>
+</body>
+</html>
+
+<style>
+    [data-tooltip] {
+      position: relative;
+      cursor: pointer;
+    }
+    [data-tooltip]:before,
+    [data-tooltip]:after {
+      line-height: 1;
+      font-size: .9em;
+      pointer-events: none;
+      position: absolute;
+      box-sizing: border-box;
+      display: none;
+      opacity: 0;
+    }
+    [data-tooltip]:before {
+      content: "";
+      border: 5px solid transparent;
+      z-index: 100;
+    }
+    [data-tooltip]:after {
+      content: attr(data-tooltip);
+      text-align: center;
+      min-width: 3em;
+      max-width: 21em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 4px 12px;
+      border-radius: 9px;
+      background: #4621FF;
+      color: #FFFFFF;
+      z-index: 99;
+      text-shadow: 2px 0px 0px #800000;
+    }
+    [data-tooltip]:hover:before,
+    [data-tooltip]:hover:after {
+      display: block;
+      opacity: 1;
+    }
+    [data-tooltip]:not([data-flow])::before,
+    [data-tooltip][data-flow="top"]::before {
+      bottom: 100%;
+      border-bottom-width: 0;
+      border-top-color: #4621FF;
+    }
+    [data-tooltip]:not([data-flow])::after,
+    [data-tooltip][data-flow="top"]::after {
+      bottom: calc(100% + 5px);
+    }
+    [data-tooltip]:not([data-flow])::before, [tooltip]:not([data-flow])::after,
+    [data-tooltip][data-flow="top"]::before,
+    [data-tooltip][data-flow="top"]::after {
+      left: 50%;
+      -webkit-transform: translate(-50%, -4px);
+              transform: translate(-50%, -4px);
+    }
+    [data-tooltip][data-flow="bottom"]::before {
+      top: 100%;
+      border-top-width: 0;
+      border-bottom-color: #4621FF;
+    }
+    [data-tooltip][data-flow="bottom"]::after {
+      top: calc(100% + 5px);
+    }
+    [data-tooltip][data-flow="bottom"]::before, [data-tooltip][data-flow="bottom"]::after {
+      left: 50%;
+      -webkit-transform: translate(-50%, 8px);
+              transform: translate(-50%, 8px);
+    }
+    [data-tooltip][data-flow="left"]::before {
+      top: 50%;
+      border-right-width: 0;
+      border-left-color: #4621FF;
+      left: calc(0em - 5px);
+      -webkit-transform: translate(-8px, -50%);
+              transform: translate(-8px, -50%);
+    }
+    [data-tooltip][data-flow="left"]::after {
+      top: 50%;
+      right: calc(100% + 5px);
+      -webkit-transform: translate(-8px, -50%);
+              transform: translate(-8px, -50%);
+    }
+    [data-tooltip][data-flow="right"]::before {
+      top: 50%;
+      border-left-width: 0;
+      border-right-color: #4621FF;
+      right: calc(0em - 5px);
+      -webkit-transform: translate(8px, -50%);
+              transform: translate(8px, -50%);
+    }
+    [data-tooltip][data-flow="right"]::after {
+      top: 50%;
+      left: calc(100% + 5px);
+      -webkit-transform: translate(8px, -50%);
+              transform: translate(8px, -50%);
+    }
+    [data-tooltip=""]::after, [data-tooltip=""]::before {
+      display: none !important;
+    }
+    </style>
