@@ -76,7 +76,7 @@
                         
                         <div>
                             <button type="button" class="btn btn-danger" onclick="eliminarRegistresHores()">Eliminar</button>
-                            <button type="button" class="btn btn-primary" onclick="" style="">Regularitzar hores extres</button>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Regularitzar hores extres</button>
                         </div>
                     </div>
                 </div>
@@ -88,16 +88,64 @@
                             <th>Data</th>
                             <th>Hores validades</th>
                             <th>Hores esperades</th>
-                            <th>Balanç</th>
+                            <th>Canvi en balanç</th>
                         </tr>
                     </tbody>
                 </table>
             </div> 
         </div>
-        
+      </div>
     </div>
 </body>
 </html>
+
+<!-- Modal -->
+
+<div class="modal modal-dialog modal-dialog-centered fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: none;position: absolute;width: 100%;height: 100%;left: 50%;top: 50%;transform: translate(-50%, -50%);">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Regularitzar hores extres</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <span>Quantes hores vols regularitzar?</span>
+        <div style="
+        display: flex;
+        align-items: center;
+        width: 100%;
+        justify-content: space-between;
+        margin-bottom: 2em;
+    ">
+          <input id="hores-regularitzar" type="number" value="0" style="font-weight: 600; font-size: 18px; margin-bottom: 1em;margin-top: 0.6em;border: 1px solid;padding: 1em;border-radius: 2px; width: 40%;">
+          <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+      ">
+            <span>Balanç d'hores actual:</span>
+            <span style="font-weight: 600; font-size: 18px;" id="balanç-hores-modal">3.00h</span>
+          </div>
+           
+        </div>
+        
+
+        <p>Recorda que es poden regularitzar tan hores positives com hores negatives si és necessari. <br><br><b>Exemples:</b><br>
+          Regularitzar "1" significa que ha hagut 1 hora extra i s'afegeix a la nòmina. <br>
+          Regularitzar "-1" significa que aquest mes s'ha fet 1 hora menys i es descompte de la nòmina. <br><br>
+
+        </p>
+
+        <p>Ambdues maneres es canvia el balanç d'hores extres per a que quedi constància d'aquesta regularització. <br><br> 
+        Marcar-les com a regularitzades serveix per a treure-les del balanç i per a que el treballador sapigui que han estat tenides en compte per a la nòmina</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel·lar</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="regularitzarHores()">Regularitzar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <style>
     [data-tooltip] {

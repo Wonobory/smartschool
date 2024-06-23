@@ -21,6 +21,8 @@ function carregarPagina(url, action = 0, dia = null) {
                 carregarAfegirTrajecte();
             } else if (url == '/pages/kilometratge.html') {
                 carregarTrajectes()
+            } else if (url == '/pages/regularitzacions.html') {
+                carregarRegularitzacions()
             }
         });
 }
@@ -60,16 +62,22 @@ function seleccionar(num) {
             break;
         case 5:
             moveSelector(286);
-            carregarPagina('/pages/perfil.html')
+            carregarPagina('/pages/regularitzacions.html')
             break;
         case 6:
+            moveSelector(334);    
+            carregarPagina('/pages/perfil.html')
+
+            
+            break;
+        case 7:
             axios.get('/logout')
-                .then(function(response) {
-                    window.location.href = '/login';
-                })
-                .catch(function(error) {
-                    console.log(error);
-                });
+            .then(function(response) {
+                window.location.href = '/login';
+            })
+            .catch(function(error) {
+                console.log(error);
+            });
             break;
     }
 }

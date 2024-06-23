@@ -9,7 +9,7 @@ function carregarRegistre() {
         let horesTotals = 0;
 
         data.sort((a, b) => {
-            return parseInt(a.dia.slice(8, 10)) - parseInt(b.dia.slice(8, 10));
+            return parseInt(b.dia.slice(8, 10)) - parseInt(a.dia.slice(8, 10));
         });
 
         for (var i = 0; i < data.length; i++) {

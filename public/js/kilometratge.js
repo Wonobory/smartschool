@@ -10,6 +10,10 @@ async function carregarTrajectes() {
         */
 
         
+        res.data.sort((a, b) => {
+            return parseInt(b.dia.slice(8, 10)) - parseInt(a.dia.slice(8, 10));
+        });
+
         const trajectes = res.data
         const trajectesAddAll = $('.trajectes')[0]
         trajectesAddAll.innerHTML = ''
@@ -19,7 +23,7 @@ async function carregarTrajectes() {
         for (var i = 0; i < trajectes.length; i++) {
             const trajecteContainer = document.createElement('div')
 
-            const [any, dia, mes] = trajectes[i].dia.split('-')
+            const [any, mes, dia] = trajectes[i].dia.split('-')
             const trajecteDia = document.createElement('h5')
             trajecteDia.className = 'trajecte-dia'
             trajecteDia.textContent = `${dia}/${mes}/${any}`
