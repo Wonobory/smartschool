@@ -278,7 +278,9 @@ app.get('/admin/api/hores/:id', async (req, res) => {
     const sqlDiesPendents = `SELECT * FROM dies_pendents WHERE user_id = ? AND dia >= ? AND dia <= ?`;
     const diesPendents = await pool.query(sqlDiesPendents, [req.params.id, from, to]);
 
-    res.json({hores_validades: horarisValidats, absencies: absencies, dies_pendents: diesPendents});
+    const regularitzacions = await getRegularitzacions(req.params.id, from, to);
+
+    res.json({hores_validades: horarisValidats, absencies: absencies, dies_pendents: diesPendents, regularitzacions});
 })
 
 app.get('/admin/hores/:id', async (req, res) => {
@@ -308,6 +310,7 @@ app.get('/admin/hores/:id', async (req, res) => {
         const hores_validades = await getHoresValidades(req.params.id);
         const absencies = await getAbsencies(req.params.id);
         const diesPendents = await getDiesPendents(req.params.id);
+        const regularitzacions = await getRegularitzacions(req.params.id);
 
         const jsonData = {
             id: result[0].id,
@@ -319,6 +322,7 @@ app.get('/admin/hores/:id', async (req, res) => {
             dies_pendents: diesPendents,
             balançHores: await calcularBalançHores(req.params.id),
             foto_perfil: result[0].foto_perfil,
+            regularitzacions: regularitzacions,
         }
             
         const jsonString = JSON.stringify(jsonData);
@@ -348,10 +352,11 @@ app.post('/admin/eliminar-registre', async (req, res) => {
     // type = 0 -> hores validades
     // type = 1 -> absencies
     // type = 2 -> dies pendents
+    // type = 3 -> regularitzacions
 
     const sql = "DELETE FROM ?? WHERE id = ?";
     for (var i = 0; i < req.body.id.length; i++) {
-        await pool.query(sql, [req.body.id[i].type == 0 ? 'horaris_validats' : (req.body.id[i].type == 1 ? 'absencies' : 'dies_pendents'), req.body.id[i].id]);
+        await pool.query(sql, [req.body.id[i].type == 0 ? 'horaris_validats' : (req.body.id[i].type == 1 ? 'absencies' : (req.body.id[i].type == 2 ? 'dies_pendents' : 'regularitzacions')), req.body.id[i].id]);
     }
 
     res.json({type: 'done', message: 'Registres eliminats correctament'});
@@ -645,6 +650,31 @@ app.get('/dies-pendents', async (req, res) => {
     return res.json(toReturn);
 })
 
+app.get('/regularitzacions', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql1 = "SELECT * FROM regularitzacions WHERE treballador_id = ?";
+    const regularitzacions = await pool.query(sql1, [req.session.userId]);
+
+    const sql2 = "SELECT * FROM dies_pendents WHERE user_id = ?";
+    const diesPendents = await pool.query(sql2, [req.session.userId]);
+
+    const sql3 = "SELECT * FROM absencies WHERE user_id = ?";
+    const absencies = await pool.query(sql3, [req.session.userId]);
+
+    const sql4 = "SELECT * FROM horaris_validats WHERE user_id = ?";
+    const horarisValidats = await pool.query(sql4, [req.session.userId]);
+
+    res.json({
+        regularitzacions: regularitzacions, 
+        diesPendents: diesPendents, 
+        absencies: absencies, 
+        horarisValidats: horarisValidats
+    });
+})
 
 app.get('/perfil', async (req, res) => {
     if (!req.session.userId) {
@@ -920,6 +950,23 @@ app.post('/admin/eliminar-trajecte', async (req, res) => {
     res.json({type: 'done', message: 'Trajectes eliminats correctament'});
 })
 
+app.post('/admin/regularitzar-hores', async (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.treballador_id || !req.body.amount) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const sql = "INSERT INTO regularitzacions (treballador_id, hores, admin_id) VALUES (?, ?, ?)";
+    await pool.query(sql, [req.body.treballador_id, req.body.amount, req.session.userId]);
+
+    res.json({type: 'done', message: 'Hores regularitzades correctament'});
+})
+
 function calcularHoresSetmanals(horari) {
     let count = 0;
     for (var i = 0; i < horari.length; i++) {
@@ -941,6 +988,9 @@ async function calcularBalançHores(user_id) {
     const sql3 = `SELECT * FROM dies_pendents WHERE user_id = ${user_id}`;
     const diesPendents = await pool.query(sql3);
 
+    const sql4 = `SELECT * FROM regularitzacions WHERE treballador_id = ${user_id}`;
+    const regularitzacions = await pool.query(sql4);
+
     let horesTotals = 0;
     for (var i = 0; i < horesRealitzades.length; i++) {
         const horari = JSON.parse(horesRealitzades[i].horari);
@@ -959,6 +1009,10 @@ async function calcularBalançHores(user_id) {
     for (var i = 0; i < diesPendents.length; i++) {
         const horari = JSON.parse(diesPendents[i].horari_esperat);  
         horesTotals -= contarHores(horari);
+    }
+
+    for (var i = 0; i < regularitzacions.length; i++) {
+        horesTotals -= regularitzacions[i].hores;
     }
 
     return horesTotals;
@@ -1009,6 +1063,18 @@ function contarHores(horari) {
         count += h2 - h1;
     }
     return count;
+}
+
+async function getRegularitzacions(user_id, from=null, to=null) {
+    if (from && to) {
+        const sql = "SELECT regularitzacions.id, users.nom, regularitzacions.hores, regularitzacions.dia FROM regularitzacions JOIN users ON regularitzacions.admin_id = users.id WHERE treballador_id = ? AND dia >= ? AND dia <= ?"
+        const result = await pool.query(sql, [user_id, from, to])
+        return result;
+    }
+
+    const sql = "SELECT regularitzacions.id, users.nom, regularitzacions.hores, regularitzacions.dia FROM regularitzacions JOIN users ON regularitzacions.admin_id = users.id WHERE treballador_id = ?"
+    const result = await pool.query(sql, [user_id])
+    return result;
 }
 
 async function getHorari(user_id) {

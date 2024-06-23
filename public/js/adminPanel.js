@@ -67,7 +67,7 @@ function carregarTreballador(dades) {
 
 }
 
-if (window.location.pathname === '/admin') {
+if (window.location.pathname === '/admin' || window.location.pathname === '/admin/') {
     carregarTreballadors()
 } else if (window.location.pathname.includes('/admin/treballador')) {
     carregarTreballador(dades)
@@ -89,7 +89,6 @@ if (window.location.pathname === '/admin') {
 function gestionarDeFins() {
     const inputs = $('.defins')
     inputs.each(i => {
-        console.log(inputs[i])
         inputs[i].onchange = () => {
             if (inputs[i].id == 'data-inici' && new Date($('#data-final')[0].value) < new Date(inputs[i].value)) {
                 $('#data-final')[0].value = inputs[i].value
@@ -280,7 +279,7 @@ function carregarHoresMes() {
 
         res.data.dies_pendents.forEach(dia => {
             let toAdd = {
-                data: dia,
+                data: dia.dia,
                 hores_validades: 0,
                 hores_esperades: contarHores(JSON.parse(dia.horari_esperat)),
                 canvi_en_balanç: -contarHores(JSON.parse(dia.horari_esperat)),
@@ -291,6 +290,19 @@ function carregarHoresMes() {
             calendari.push(toAdd)
         })
 
+        res.data.regularitzacions.forEach(regularitzacio => {
+            let toAdd = {
+                data: regularitzacio.dia,
+                hores_validades: 'Regularització: ' + (regularitzacio.hores).toFixed(2),
+                hores_esperades: 0,
+                canvi_en_balanç: -regularitzacio.hores,
+                type: 3,
+                id: regularitzacio.id
+            }
+    
+            calendari.push(toAdd)
+        })
+
         calendari.sort((a, b) => {
             return new Date(b.data) - new Date(a.data)
         })
@@ -298,7 +310,7 @@ function carregarHoresMes() {
         let x = 0
         calendari.forEach(dia => {
             const data = adjustTimezone(dia.data).toISOString().split('T')[0].split('-').reverse().join('/')
-            if (dia.type != 1) {
+            if (dia.type != 1 && dia.type != 3) {
                 table.innerHTML += `
                     <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
                         <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
@@ -308,7 +320,7 @@ function carregarHoresMes() {
                         <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
                     </tr>
                 `
-            } else {
+            } else if (dia.type == 1) {
                 table.innerHTML += `
                 <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
                     <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
@@ -318,6 +330,16 @@ function carregarHoresMes() {
                     <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
                 </tr>
             ` 
+            } else if (dia.type == 3) {
+                table.innerHTML += `
+                    <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                        <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                        <td>${data}</td>
+                        <td>${dia.hores_validades}h</td>
+                        <td>${dia.hores_esperades.toFixed(2)}h</td>
+                        <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+                    </tr>
+                `
             }
             x++
         })
@@ -334,6 +356,8 @@ function carregarHores() {
     const table = $('#hores-table')[0]
 
     $('#balanç-hores')[0].innerText = dades.balançHores.toFixed(2) + 'h'
+    $('#balanç-hores-modal')[0].innerText = dades.balançHores.toFixed(2) + 'h'
+
 
     /*
     id: result[0].id,
@@ -350,6 +374,7 @@ function carregarHores() {
     // type = 0 -> hores validades
     // type = 1 -> absencies
     // type = 2 -> dies pendents
+    // type = 3 -> regularitzacions
 
     let calendari = []
 
@@ -384,12 +409,25 @@ function carregarHores() {
 
     dades.dies_pendents.forEach(dia => {
         let toAdd = {
-            data: dia,
+            data: dia.dia,
             hores_validades: 0,
             hores_esperades: contarHores(JSON.parse(dia.horari_esperat)),
             canvi_en_balanç: -contarHores(JSON.parse(dia.horari_esperat)),
             type: 2,
             id: dia.id
+        }
+
+        calendari.push(toAdd)
+    })
+
+    dades.regularitzacions.forEach(regularitzacio => {
+        let toAdd = {
+            data: regularitzacio.dia,
+            hores_validades: 'Regularització: ' + (regularitzacio.hores).toFixed(2),
+            hores_esperades: 0,
+            canvi_en_balanç: -regularitzacio.hores,
+            type: 3,
+            id: regularitzacio.id
         }
 
         calendari.push(toAdd)
@@ -401,8 +439,9 @@ function carregarHores() {
 
     let x = 0
     calendari.forEach(dia => {
+        console.log(dia, x)
         const data = adjustTimezone(dia.data).toISOString().split('T')[0].split('-').reverse().join('/')
-        if (dia.type != 1) {
+        if (dia.type != 1 && dia.type != 3) {
             table.innerHTML += `
                 <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
                     <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
@@ -412,7 +451,7 @@ function carregarHores() {
                     <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
                 </tr>
             `
-        } else {
+        } else if (dia.type == 1) {
             table.innerHTML += `
             <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
                 <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
@@ -422,13 +461,22 @@ function carregarHores() {
                 <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
             </tr>
         ` 
+        } else if (dia.type == 3) {
+            table.innerHTML += `
+                <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                    <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                    <td>${data}</td>
+                    <td>${dia.hores_validades}h</td>
+                    <td>${dia.hores_esperades.toFixed(2)}h</td>
+                    <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+                </tr>
+            `
         }
         x++
     })
 
     x = 0
     calendari.forEach(dia => {
-        
         $(`input[data-i="${x}"]`)[0].addEventListener('click', (e) => {
             e.stopPropagation()
         })
@@ -458,6 +506,18 @@ function eliminarRegistresHores() {
     })
     console.log(horesId)
 
+}
+
+function regularitzarHores() {
+    const hores = parseFloat($('#hores-regularitzar')[0].value)
+    const treballador_id = dades.id
+
+    axios.post('/admin/regularitzar-hores', { amount: hores, treballador_id }).then(res => {
+        console.log(res.data)
+        window.location.reload()
+    }).catch(err => {
+        console.error(err)
+    })
 }
 
 function seleccionarTotsHores() {
