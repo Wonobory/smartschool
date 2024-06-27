@@ -30,7 +30,7 @@ function carregarHorari() {
         horariDisplay.innerHTML = '';
         horesTotals.innerText = '';
 
-        if (res.data.horari == null) {
+        if (res.data.horari == null || res.data.horari.length == 0) {
             horariDisplay.innerText = 'No tens cap hora programada';
             horesTotals.innerText = '0.00';
             return
@@ -51,7 +51,7 @@ function carregarHorari() {
 function validarHorari() {
     axios.post('/validar-horari', {dia: window.location.hash.slice(1)}).then(res => {
         carregarHorari();
-        revisarNotificacio()
+        revisarNotificacio();
     }).catch(err => {
         alert(err.response.data.message);
     });

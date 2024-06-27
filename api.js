@@ -400,7 +400,7 @@ app.get('/horari-esperat', async (req, res) => {
         return res.end();
     }
     
-    
+    let horari_anterior = false
     //Revisa si l'horari d'avui ja ha estat validat
     if (!req.query.dia) {
         var avui = new Date();
@@ -409,7 +409,12 @@ app.get('/horari-esperat', async (req, res) => {
         try {
             const [day, month, year] = req.query.dia.split('-');
             var avui = adjustTimezone(new Date(year, month - 1, day).toISOString());
+            horari_anterior = avui < new Date();
 
+            if (avui > new Date()) {
+                res.status(400).json({type: 'error', message: 'No pots validar un horari d\'un dia futur'});
+                return res.end();
+            }
         } catch (e) {
             res.status(400).json({type: 'error', message: 'Dia invàlid'});
             return res.end();
@@ -428,34 +433,18 @@ app.get('/horari-esperat', async (req, res) => {
 
     const sql = `SELECT * FROM users WHERE id = ${req.session.userId}`;
     const result = await pool.query(sql);
-    const horari = JSON.parse(result[0].horari);
-    
-    let dia = avui.getDay();
+    let horari = JSON.parse(result[0].horari);
 
-    for (var i = 0; i < horari.length; i++) {
-        if (horari[i].dia == dia) {
-            //CONTAR LES HORES
-            //format: [["9:30","13:00"],["17:00","20:00"]]...
-            var count = 0
-            for (var x = 0; x < horari[i].horari.length; x++) {
-                //HORA D'INICI
-                const time = horari[i].horari[x][0].split(':');
-                const h = parseInt(time[0]);
-                const m = parseInt(time[1]);
+    if (!horari_anterior) {
+        res.json({horari: horariAvui(horari, avui.getDay()), horesTotals: contarHores(horariAvui(horari, avui.getDay()))});
+        return res.end();
 
-                const totalMinutes = h * 60 + m;
-                
-                //HORA DE FINAL
-                const time2 = horari[i].horari[x][1].split(':');
-                const h2 = parseInt(time2[0]);
-                const m2 = parseInt(time2[1]);
-                
-                count += ((h2 * 60 + m2) - totalMinutes) / 60;
-            }
+    } else {
+        const sql2 = "SELECT * FROM dies_pendents WHERE user_id = ? AND dia = ?";
+        const result2 = await pool.query(sql2, [req.session.userId, avui.toISOString().slice(0, 10)]);
 
-            res.json({horari: horari[i].horari, horesTotals: parseFloat(count.toFixed(2))});
-            return res.end();
-        }
+        horari = result2.length == 0 ? horariAvui(horari, avui.getDay()) : JSON.parse(result2[0].horari_esperat);
+        res.json({horari: horari, horesTotals: contarHores(horari)});
     }
 
     res.json({horari: null, horesTotals: 0, horariValidat: jaValidatResult[0]});
@@ -467,17 +456,51 @@ app.post('/validar-horari', async (req, res) => {
         return res.end();
     }
 
-    if (!req.body.horari) {
-        const sql = `SELECT * FROM users WHERE id = ${req.session.userId}`;
-        const result = await pool.query(sql)
-        
-        var horari = horariAvui(JSON.parse(result[0].horari));
+    //Per saber si estem validant el dia d'avui o el d'un dia anterior
+    let diaAnterior = false;
+    try {
+        const [dia, mes, any] = req.body.dia.split('-');
+        if (req.body.dia) {
+            var avui = `${any}-${mes}-${dia}`;
 
-        if (!horari) horari = []; //Per els casos en que es valida un horari en blanc
-    } else {
-        var horari = req.body.horari;
+            if (new Date(avui) < new Date()) {
+                diaAnterior = true; // Guardem a algun lloc que el que estem validant és un dia passat
+            }
+
+            if (new Date(avui) > new Date()) {
+                res.status(400).json({type: 'error', message: 'No pots validar un horari d\'un dia futur'});
+                return res.end();
+            }
+
+        } else {
+            var avui = new Date().toISOString().slice(0, 10);
+        }
+
+    } catch (e) {
+        console.log(e);
+        res.status(400).json({type: 'error', message: 'Dia invàlid'});
+        return res.end();
     }
 
+    // L'horari esperat dependra de si estem validant el dia d'avui o no
+
+    // Si és un dia passat primer mirarem si existeix un dia pendent amb aquell dia
+    // si no existeix mirarem l'horari actual de l'usuari
+
+    if (!diaAnterior) {
+        var horari_esperat = horariAvui(await getHorari(req.session.userId), new Date(avui).getDay());
+    } else {
+        const sql3 = "SELECT * FROM dies_pendents WHERE user_id = ? AND dia = ?";
+        const result3 = await pool.query(sql3, [req.session.userId, avui]);
+
+        if (result3.length == 0) {
+            var horari_esperat = horariAvui(await getHorari(req.session.userId), new Date(avui).getDay()); // Com que no ha trobat cap dia pendent de validar, mirarem quin és el que tenia per aquell dia
+        } else {
+            var horari_esperat = JSON.parse(result3[0].horari_esperat);
+        }
+    }
+
+    var horari = !req.body.horari ? horari_esperat : req.body.horari;
 
     //Revisa que els horaris siguin vàlids
     let horaris_comprovats = []
@@ -505,16 +528,6 @@ app.post('/validar-horari', async (req, res) => {
         horaris_comprovats.push([start, end]);
     }
 
-    //Per saber si estem validant el dia d'avui o el d'un dia anterior
-    try {
-        const [dia, mes, any] = req.body.dia.split('-');
-        var avui = req.body.dia ? `${any}-${mes}-${dia}` : new Date().toISOString().slice(0, 10);
-    } catch (e) {
-        console.log(e);
-        res.status(400).json({type: 'error', message: 'Dia invàlid'});
-        return res.end();
-    }
-
     let jaValidatResult = await jaValidat(req.session.userId, avui)
     
     //Comprova que no s'hagi validat ja l'horari d'avui
@@ -523,9 +536,6 @@ app.post('/validar-horari', async (req, res) => {
         return res.end();
     }
 
-    var horari_esperat = horariAvui(await getHorari(req.session.userId), new Date(avui).getDay());
-
-    //Si s'han passat totes les comprovacions anteriors significa que ja el podem incloure a la base de dades
     const sql2 = `INSERT INTO horaris_validats (user_id, dia, horari, horari_esperat) VALUES (${req.session.userId}, '${avui}', '${JSON.stringify(horari)}', '${JSON.stringify(horari_esperat)}')`;
     await pool.query(sql2);
 

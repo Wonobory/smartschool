@@ -40,36 +40,22 @@ function carregarRegularitzacions() {
 
         let totalReg = 0
         res.data.regularitzacions.forEach(dia => {
-            totalReg += dia.hores
+            canvis.push({
+                dia: dia,
+                canviBalanç: dia.hores,
+                regularitzacio: true
+            })
+
+            totalReg += dia.hores;
+        })
+
+        canvis.sort((a, b) => {
+            return new Date(b.dia.dia) - new Date(a.dia.dia)
         })
 
         balanç -= totalReg;
 
         $('#registres')[0].innerHTML = '';
-
-        console.log(totalReg)
-        
-        const div = document.createElement('div');
-        div.className = 'registre-diari-menu-mensual-container';
-
-        const div2 = document.createElement('div');
-        div2.className = 'registre-diari-b1';
-        
-        const span = document.createElement('span');
-        span.innerHTML = "Regularització:";
-
-        const span2 = document.createElement('span');
-        span2.innerHTML = (-totalReg).toFixed(2) + ' h';
-
-        div2.appendChild(span);
-        div2.appendChild(span2);
-        div.appendChild(div2);
-        
-        const span3 = document.createElement('span');
-        span3.className = 'registre-diari-hores';
-                    
-        $('#registres')[0].appendChild(div);
-
 
         let total = 0;
         
@@ -79,6 +65,21 @@ function carregarRegularitzacions() {
     
             const div2 = document.createElement('div');
             div2.className = 'registre-diari-b1';
+
+            if (dia.regularitzacio) {
+                const span = document.createElement('span');
+                span.innerHTML = "Regularització:";
+
+                const span2 = document.createElement('span');
+                span2.innerHTML = (-totalReg).toFixed(2) + ' h';
+
+                div2.appendChild(span);
+                div2.appendChild(span2);
+
+                div.appendChild(div2);
+                $('#registres')[0].appendChild(div);
+                return
+            }
             
             const span = document.createElement('span');
             span.innerHTML = new Date(dia.dia.dia).toISOString().slice(0, 10).split('-').reverse().join('/');
