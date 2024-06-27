@@ -37,8 +37,8 @@
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 3em;">
                         
-                        <input type="text" onkeyup="carregarTreballadors()" placeholder="Busca un treballador" id="search-bar">
-                        <button type="button" class="btn btn-primary">Afegir un nou treballador</button>
+                        <input type="text" onkeydown="carregarTreballadors()" placeholder="Busca un treballador" id="search-bar">
+                        <button type="button" onclick="location.href = '/admin/treballadors/afegir'" class="btn btn-primary">Afegir un nou treballador</button>
                     </div>
                     
                 </div>
@@ -46,7 +46,8 @@
                 <table>
                     <tbody class="treballadors-table">
                         <tr>
-                            <th>ID</th>
+                            <th>ID</th> 
+                            
                 
                             <th>Nom</th>
                             <th>Cognoms</th>

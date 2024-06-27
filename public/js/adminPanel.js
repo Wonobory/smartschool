@@ -1,4 +1,5 @@
 const MOTIUS = ["Festiu", "Canvi de torn", "Personal", "Absentisme", "Baixa mèdica", "Permís retribuït", "Vacances"];
+var horariDies = [];
 
 function carregarTreballadors() {
     axios.get('/treballadors', {params: {query: $('#search-bar')[0].value}}).then(res => {
@@ -586,3 +587,78 @@ function contarHores(horari) {
     }
     return count;
 }
+
+function afegirDiaAlHorari(dia, from, to) {
+    /*
+    [
+        {"dia":1,
+            "horari": [
+                [
+                    "10:30",
+                    "13:30"
+                ]
+            ]
+        },
+        {"dia":2,
+            "horari": [
+                [
+                    "10:30",
+                    "13:30"
+                ]
+            ]
+        }
+    ]*/
+
+    let trobat = false
+    //check if dia is already in horariDies
+    for (var i = 0; i < horariDies.length; i++) {
+        if (horariDies[i].dia == dia) {
+            horariDies[i].horari.push([from, to])
+            trobat = true
+            break
+        }
+    }
+
+    if (!trobat) {
+        horariDies.push({
+            dia: dia,
+            horari: [[from, to]]
+        })
+    }
+
+
+    console.log(horariDies)
+    drawHorari(horariDies)
+}
+
+function afegirInputsAlHorari() {
+    const dia = $('#dia-setmana')[0]
+    const from = $('#inici-time')[0]
+    const to = $('#final-time')[0]
+
+    const timeFrom = from.value.split(':');
+    const timeTo = to.value.split(':');
+
+    const h1 = parseInt(timeFrom[0]) + parseInt(timeFrom[1]) / 60;
+    const h2 = parseInt(timeTo[0]) + parseInt(timeTo[1]) / 60;
+
+    if (!dia.reportValidity() || !from.reportValidity() || !to.reportValidity()) {
+        return
+    }
+
+    if (h2 < h1 || h2 === h1) {
+        console.log(h2, h1)
+        from.setCustomValidity('Hora de final inferior a la d\'inici')
+        from.reportValidity()
+        return
+    }
+
+    if (isNaN(h2) || isNaN(h1)) {
+        from.setCustomValidity('Franja de temps buida')
+        from.reportValidity()
+        return
+    }
+
+    afegirDiaAlHorari(dia.value, from.value, to.value)
+}
+

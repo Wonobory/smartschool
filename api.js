@@ -185,6 +185,15 @@ app.get('/admin/treballador/:id', (req, res) => {
     });
 })
 
+app.get('/admin/treballadors/afegir', (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    res.sendFile(path.join(__dirname, '/client/nou_treballador.html'));
+})
+
 app.get('/admin/trajectes/:id', async (req, res) => {
     if (!req.session.userId || req.session.role == 1) {
         res.redirect('/login');

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin dashboard</title>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/axios.js"></script>
+
+
+    <link rel="stylesheet" href="/bootstrap/bootstrap.css">
+    <script defer src="/bootstrap/bootstrap.js"></script>
+
+
+    <script defer src="/js/horari.js"></script>
+    <script defer src="/js/adminPanel.js"></script>
+    
+
+    <link rel="stylesheet" href="/css/adminPage.css">
+    <link rel="stylesheet" href="/css/treballador.css">
+</head>
+<body>
+    <div class="main-center">
+        
+        <nav class="main-navbar">
+            <div style="width: 100%; display: flex; align-items: center;justify-content: center; margin-top: 2em; margin-bottom: 2em;">
+                <img src="/img/logos/logo_smart_transparent.png" alt="" class="logo">
+            </div>
+            
+            <ul>
+                <li onclick="window.location.href = '/admin'">Treballadors</li>
+                <li>Trajectes</li>
+            </ul>
+        </nav>
+
+        <div style="width: 100%; display: flex; justify-content: center;">
+            <div class="content" style="width: 80%; display: flex; flex-direction: column;" id="output">
+                
+                <div class="inputs">
+                    <div class="nou-treballador">
+                        <label for="nom-input">Nom</label>
+                        <input type="text" id="nom-input">
+                    </div>
+                    
+                    <div class="nou-treballador">
+                        <label for="cognoms">Cognoms</label>
+                        <input type="text" id="cognoms">
+                    </div>
+                    
+                    <div class="nou-treballador">
+                        <label for="hores-contracte">Hores contracte:</label>
+                        <input type="number" id="hores-contracte" autocomplete="one-time-code">
+                    </div>
+
+                    <div class="nou-treballador">
+                        <label for="hores-contracte">Rol:</label>
+                        <select name="" id="">
+                            <option value="0">Admin</option>
+                            <option value="1">Treballador</option>
+                        </select>
+                    </div>
+
+                    <div class="nou-treballador">
+                        <label for="email">Email:</label>
+                        <input type="email" id="field1" autocomplete="off">
+                    </div>
+    
+                    <div class="nou-treballador">
+                        <label for="password">Contrasenya:</label>
+                        <input type="password" autocomplete="new-password" id="password">
+                    </div>
+    
+                    <div class="nou-treballador">
+                        <label for="password">Repeteix la contrasenya:</label>
+                        <input type="password" id="password">
+                    </div>
+                </div>
+                
+                
+                <div style="display: flex; justify-content: space-between; " class="calendari-options">
+                    <div>
+                        <label for="">Dia</label>
+                        <select name="dia-setmana" id="dia-setmana">
+                            <option value="1">Dilluns</option>
+                            <option value="2">Dimarts</option>
+                            <option value="3">Dimecres</option>
+                            <option value="4">Dijous</option>
+                            <option value="5">Divendres</option>
+                            <option value="6">Dissabte</option>
+                            <option value="0">Diumenge</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="">Hora inici</label>
+                        <input id="inici-time" type="time" required>
+                    </div>
+
+                    <div>
+                        <label for="">Hora final</label>
+                        <input id="final-time" type="time" required>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" onclick="afegirInputsAlHorari()">
+                        Afegir al horari
+                    </button>
+                </div>
+
+                <div class="horari">
+                    <div class="dia" data-id="1">
+                        <span class="dia-setmana">Dilluns</span>
+
+                        <div class="horari-content">
+                            <img src="/svg/close.svg" alt="close" class="close-button">
+                            <span>12:30</span>
+                            <span> - </span>
+                            <span>14:30</span>
+                        </div>
+                    </div>
+
+                    <div class="dia" data-id="2">
+                        <span class="dia-setmana">Dimarts</span>
+                    </div>
+                    
+                    <div class="dia" data-id="3">
+                        <span class="dia-setmana">Dimecres</span>
+                    </div>
+
+                    <div class="dia" data-id="4">
+                        <span class="dia-setmana">Dijous</span>
+                    </div>
+
+                    <div class="dia" data-id="5">
+                        <span class="dia-setmana">Divendres</span>
+                    </div>
+
+                    <div class="dia" data-id="6">
+                        <span class="dia-setmana">Dissabte</span>
+                    </div>
+
+                    <div class="dia" data-id="0">
+                        <span class="dia-setmana">Diumenge</span>
+                    </div>
+                </div>
+            </div> 
+
+            
+        </div>
+        
+    </div>
+</body>
+</html>
