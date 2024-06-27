@@ -99,3 +99,102 @@ tr:hover {
     background-color: #e5e5e5;
 }
 
+.inputs {
+    display: flex;
+    flex-direction: column;
+}
+
+.nou-treballador {
+    display: flex;
+    flex-direction: column;
+
+    margin-bottom: 1em;
+}
+
+.nou-treballador input {
+    font-size: 15px;
+}
+
+.nou-treballador label, .horari-label {
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.horari {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+
+    text-align: center;
+}
+
+.calendari-options div {
+    display: flex;
+    flex-direction: column;
+}
+
+.calendari-options label {
+    text-decoration: underline;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.calendari-options {
+    margin-bottom: 2em;
+    padding-top: 2em;
+    margin-top: 1em;
+
+    border-top: 1px solid black;
+}
+
+.dia {
+    width: -webkit-fill-available;
+    padding: 5px;
+}
+
+.dia-setmana {
+    font-weight: 700;
+    text-decoration: underline;
+}	
+
+.horari-content {
+    background: #97c7ff;
+    padding: 1.6em;
+    margin-top: 1em;
+    width: 100%;
+    border: 3px solid black;
+    font-weight: 700;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column; 
+    
+    position: relative;
+}
+
+.horari-content span {
+    width: auto;
+
+    text-decoration: none !important;
+}
+
+.close-button {
+    width: 25px;
+    height: 25px;
+
+    position: absolute;
+
+    left: 86%;
+    transform: translate(-50%, -50%);
+    top: 17%;
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+
+    padding: 2px;
+    border-radius: 5px;
+}
+
+.close-button:hover {
+    background-color: #f44336;
+}

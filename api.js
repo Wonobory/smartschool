@@ -185,6 +185,15 @@ app.get('/admin/treballador/:id', (req, res) => {
     });
 })
 
+app.get('/admin/treballadors/afegir', (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    res.sendFile(path.join(__dirname, '/client/nou_treballador.html'));
+})
+
 app.get('/admin/trajectes/:id', async (req, res) => {
     if (!req.session.userId || req.session.role == 1) {
         res.redirect('/login');
@@ -445,9 +454,8 @@ app.get('/horari-esperat', async (req, res) => {
 
         horari = result2.length == 0 ? horariAvui(horari, avui.getDay()) : JSON.parse(result2[0].horari_esperat);
         res.json({horari: horari, horesTotals: contarHores(horari)});
+        return res.end();
     }
-
-    res.json({horari: null, horesTotals: 0, horariValidat: jaValidatResult[0]});
 });
 
 app.post('/validar-horari', async (req, res) => {

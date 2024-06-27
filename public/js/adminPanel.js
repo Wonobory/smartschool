@@ -1,4 +1,5 @@
 const MOTIUS = ["Festiu", "Canvi de torn", "Personal", "Absentisme", "Baixa mèdica", "Permís retribuït", "Vacances"];
+var horariDies = [];
 
 function carregarTreballadors() {
     axios.get('/treballadors', {params: {query: $('#search-bar')[0].value}}).then(res => {
@@ -246,18 +247,17 @@ function carregarHoresMes() {
         while (table.rows.length > 1) {
             table.deleteRow(1);
         }
-
-        console.log(res.data)
     
         res.data.hores_validades.forEach(hores => {
-            console.log(hores.horari)
             let toAdd = {
                 data: hores.dia,
                 hores_validades: contarHores(JSON.parse(hores.horari)),
                 hores_esperades: contarHores(JSON.parse(hores.horari_esperat)),
                 canvi_en_balanç: contarHores(JSON.parse(hores.horari)) - contarHores(JSON.parse(hores.horari_esperat)),
                 type: 0,
-                id: hores.id
+                id: hores.id,
+                horari_esperat: hores.horari_esperat,
+                horari_validat: hores.horari
             }
 
             calendari.push(toAdd)
@@ -271,7 +271,9 @@ function carregarHoresMes() {
                 canvi_en_balanç: absencia.computen ? 0 : -contarHores(JSON.parse(absencia.horari_esperat)),
                 type: 1,
                 id: absencia.id,
-                motiu: MOTIUS[absencia.motiu-1]
+                motiu: MOTIUS[absencia.motiu-1],
+                horari_esperat: absencia.horari_esperat,
+                horari_validat: "[]"
             }
 
             calendari.push(toAdd)
@@ -284,7 +286,9 @@ function carregarHoresMes() {
                 hores_esperades: contarHores(JSON.parse(dia.horari_esperat)),
                 canvi_en_balanç: -contarHores(JSON.parse(dia.horari_esperat)),
                 type: 2,
-                id: dia.id
+                id: dia.id,
+                horari_esperat: dia.horari_esperat,
+                horari_validat: "[]",
             }
 
             calendari.push(toAdd)
@@ -307,45 +311,90 @@ function carregarHoresMes() {
             return new Date(b.data) - new Date(a.data)
         })
 
+        // {data, hores_validades, hores_esperades, canvi_en_balanç, type, id}
+        // type = 0 -> hores validades
+        // type = 1 -> absencies
+        // type = 2 -> dies pendents
+        // type = 3 -> regularitzacions
+
         let x = 0
         calendari.forEach(dia => {
             const data = adjustTimezone(dia.data).toISOString().split('T')[0].split('-').reverse().join('/')
-            if (dia.type != 1 && dia.type != 3) {
-                table.innerHTML += `
-                    <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
-                        <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
-                        <td>${data}</td>
-                        <td>${dia.hores_validades.toFixed(2)}h</td>
-                        <td>${dia.hores_esperades.toFixed(2)}h</td>
-                        <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
-                    </tr>
-                `
-            } else if (dia.type == 1) {
-                table.innerHTML += `
-                <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
-                    <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
-                    <td>${data}</td>
-                    <td><img src="/svg/alerta.svg" title="Motiu de l'absència: ${dia.motiu}">${dia.hores_validades.toFixed(2)}h</td>
-                    <td>${dia.hores_esperades.toFixed(2)}h</td>
-                    <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
-                </tr>
-            ` 
-            } else if (dia.type == 3) {
-                table.innerHTML += `
-                    <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
-                        <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
-                        <td>${data}</td>
-                        <td>${dia.hores_validades}h</td>
-                        <td>${dia.hores_esperades.toFixed(2)}h</td>
-                        <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
-                    </tr>
-                `
+            switch (dia.type) {
+                case 0:
+                    table.innerHTML += `
+                        <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                            <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                            <td>${data}</td>
+                            <td>${dia.hores_validades.toFixed(2)}h</td>
+                            <td>${dia.hores_esperades.toFixed(2)}h</td>
+                            <td>${horariArrayToText(dia.horari_esperat)}</td>
+                            <td>${horariArrayToText(dia.horari_validat)}</td>
+                            <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+                        </tr>
+                    `
+                    break;
+                case 1:
+                    table.innerHTML += `
+                        <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                            <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                            <td>${data}</td>
+                            <td><img src="/svg/alerta.svg" title="Motiu de l'absència: ${dia.motiu}">${dia.hores_validades.toFixed(2)}h</td>
+                            <td>${dia.hores_esperades.toFixed(2)}h</td>
+                            <td>${horariArrayToText(dia.horari_esperat)}</td>
+                            <td>${horariArrayToText(dia.horari_validat)}</td> 
+                            <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+                        </tr>
+                    `
+                    break;
+                case 2:
+                    table.innerHTML += `
+                        <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                            <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                            <td>${data}</td>
+                            <td>${dia.hores_validades.toFixed(2)}h</td>
+                            <td>${dia.hores_esperades.toFixed(2)}h</td>
+                            <td>${horariArrayToText(dia.horari_esperat)}</td>
+                            <td>${horariArrayToText(dia.horari_validat)}</td>
+                            <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+                            <td></td>
+                        </tr>
+                    `
+                    break
+                case 3:
+                    table.innerHTML += `
+                        <tr onclick='$(\`input[data-i="${x}"]\`)[0].checked = !$(\`input[data-i="${x}"]\`)[0].checked'>
+                            <td><input type="checkbox" data-type="${dia.type}" data-id="${dia.id}" data-i="${x}" class="hores"></td>
+                            <td>${data}</td>
+                            <td>${dia.hores_validades}h</td>
+                            <td>${dia.hores_esperades.toFixed(2)}h</td>
+                            <td> - </td>
+                            <td> - </td>
+                            <td>${dia.canvi_en_balanç.toFixed(2)}h</td>
+                        </tr>
+                    `
+                    break
             }
             x++
         })
     }).catch(err => {
         console.error(err)
     })
+}
+
+function horariArrayToText(horari) {
+    /*
+    FORMAT: [["10:30","13:30"]]
+    TO: 10:30 - 13:30
+    */
+    horari = JSON.parse(horari)
+    let text = ''
+    if (horari.length == 0) return ' - '
+    for (var i = 0; i < horari.length; i++) {
+        text += horari[i][0] + ' - ' + horari[i][1]
+        if (i != horari.length - 1) text += ', '
+    }
+    return text
 }
 
 function carregarHores() {
@@ -380,7 +429,6 @@ function carregarHores() {
 
     
     dades.hores_validades.forEach(hores => {
-        console.log(hores.horari)
         let toAdd = {
             data: hores.dia,
             hores_validades: contarHores(JSON.parse(hores.horari)),
@@ -439,7 +487,6 @@ function carregarHores() {
 
     let x = 0
     calendari.forEach(dia => {
-        console.log(dia, x)
         const data = adjustTimezone(dia.data).toISOString().split('T')[0].split('-').reverse().join('/')
         if (dia.type != 1 && dia.type != 3) {
             table.innerHTML += `
@@ -540,3 +587,78 @@ function contarHores(horari) {
     }
     return count;
 }
+
+function afegirDiaAlHorari(dia, from, to) {
+    /*
+    [
+        {"dia":1,
+            "horari": [
+                [
+                    "10:30",
+                    "13:30"
+                ]
+            ]
+        },
+        {"dia":2,
+            "horari": [
+                [
+                    "10:30",
+                    "13:30"
+                ]
+            ]
+        }
+    ]*/
+
+    let trobat = false
+    //check if dia is already in horariDies
+    for (var i = 0; i < horariDies.length; i++) {
+        if (horariDies[i].dia == dia) {
+            horariDies[i].horari.push([from, to])
+            trobat = true
+            break
+        }
+    }
+
+    if (!trobat) {
+        horariDies.push({
+            dia: dia,
+            horari: [[from, to]]
+        })
+    }
+
+
+    console.log(horariDies)
+    drawHorari(horariDies)
+}
+
+function afegirInputsAlHorari() {
+    const dia = $('#dia-setmana')[0]
+    const from = $('#inici-time')[0]
+    const to = $('#final-time')[0]
+
+    const timeFrom = from.value.split(':');
+    const timeTo = to.value.split(':');
+
+    const h1 = parseInt(timeFrom[0]) + parseInt(timeFrom[1]) / 60;
+    const h2 = parseInt(timeTo[0]) + parseInt(timeTo[1]) / 60;
+
+    if (!dia.reportValidity() || !from.reportValidity() || !to.reportValidity()) {
+        return
+    }
+
+    if (h2 < h1 || h2 === h1) {
+        console.log(h2, h1)
+        from.setCustomValidity('Hora de final inferior a la d\'inici')
+        from.reportValidity()
+        return
+    }
+
+    if (isNaN(h2) || isNaN(h1)) {
+        from.setCustomValidity('Franja de temps buida')
+        from.reportValidity()
+        return
+    }
+
+    afegirDiaAlHorari(dia.value, from.value, to.value)
+}
+
