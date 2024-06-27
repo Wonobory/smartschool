@@ -83,3 +83,12 @@
     font-weight: 700;
     text-decoration: underline;
 }*/
+
+.no-trajectes {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 1em;
+    width: 100%;
+
+    text-align: center;
+}

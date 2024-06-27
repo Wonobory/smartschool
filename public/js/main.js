@@ -21,6 +21,7 @@ function carregarPagina(url, action = 0, dia = null) {
                 carregarAfegirTrajecte();
             } else if (url == '/pages/kilometratge.html') {
                 carregarTrajectes()
+                $('#mostrar-trajectes-pagats')[0].onclick = carregarTrajectes
             } else if (url == '/pages/regularitzacions.html') {
                 carregarRegularitzacions()
             }

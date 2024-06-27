@@ -1,7 +1,7 @@
 async function carregarTrajectes() {
     const trajectesContainer = $('.trajectes')
+    
     axios.get('/trajectes').then(res => {
-        console.log(res.data)
         /*
         [
             { dia: '2024-06-12', trajectes: [ [Object], [Object] ] },
@@ -19,6 +19,9 @@ async function carregarTrajectes() {
         trajectesAddAll.innerHTML = ''
 
         let totalKm = 0
+
+        var mostrarTrajectesPagats = $('#mostrar-trajectes-pagats')[0].checked
+        let totalTotalTrajectes = 0
         
         for (var i = 0; i < trajectes.length; i++) {
             const trajecteContainer = document.createElement('div')
@@ -29,7 +32,14 @@ async function carregarTrajectes() {
             trajecteDia.textContent = `${dia}/${mes}/${any}`
             trajecteContainer.appendChild(trajecteDia)
 
+            let totalTrajectes = 0
             for (var j = 0; j < trajectes[i].trajectes.length; j++) {
+                if (!mostrarTrajectesPagats && trajectes[i].trajectes[j].pagat) {
+                    continue
+                }
+                totalTrajectes++
+                totalTotalTrajectes++
+
                 const trajecte = trajectes[i].trajectes[j]
                 
                 const trajecteContainer2 = document.createElement('div')
@@ -69,12 +79,24 @@ async function carregarTrajectes() {
             }
             const trajectesDia = document.createElement('div')
             trajectesDia.className = 'trajectes-dia'
+
+            if (totalTrajectes == 0) {
+                continue
+            }
+
             trajectesDia.appendChild(trajecteContainer)
             
             trajectesAddAll.appendChild(trajectesDia)
         }
-
-        console.log(totalKm)
+        console.log(totalTotalTrajectes)
+        if (totalTotalTrajectes == 0) {
+            console.log('no trajectes')
+            const noTrajectes = document.createElement('span')
+            noTrajectes.className = 'no-trajectes'
+            noTrajectes.innerText = 'No tens cap trajecte'
+            trajectesAddAll.appendChild(noTrajectes)
+        
+        }
         const km = $('#total-km')[0]
         km.innerHTML = totalKm.toFixed(2) + ' km'
             
@@ -82,3 +104,4 @@ async function carregarTrajectes() {
     console.error(err)
 })
 }
+
