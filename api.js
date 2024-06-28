@@ -100,15 +100,51 @@ app.get('/logout', (req, res) => {
 })
 
 app.get('/admin', (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
+
+        console.log(req.session.admin, req.session.userId)
         return res.end();
     }
     res.sendFile(path.join(__dirname, '/client/treballadors.html'));
 })
 
-app.get('/admin/treballador/:id', (req, res) => {
+app.post('/admin/api/donar-baixa', async (req, res) => {
     if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.id) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const sql = "UPDATE users SET actiu = 0 WHERE id = ?";
+    await pool.query(sql, [req.body.id]);
+
+    res.json({type: 'done', message: 'Usuari donat de baixa correctament'});
+})
+
+app.post('/admin/api/reactivar', async (req, res) => {
+    if (!req.session.userId || !req.session.admin) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.id) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const sql = "UPDATE users SET actiu = 1 WHERE id = ?";
+    await pool.query(sql, [req.body.id]);
+    res.json({type: 'done', message: 'Usuari reactivat correctament'});
+})
+    
+
+app.get('/admin/treballador/:id', (req, res) => {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -171,6 +207,7 @@ app.get('/admin/treballador/:id', (req, res) => {
             absenciesHores: absenciesH,
             foto_perfil: result[0].foto_perfil,
             horari: JSON.parse(result[0].horari),
+            actiu: result[0].actiu,
         }
             
         const jsonString = JSON.stringify(jsonData);
@@ -188,7 +225,7 @@ app.get('/admin/treballador/:id', (req, res) => {
 })
 
 app.get('/admin/treballadors/afegir', (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -197,7 +234,7 @@ app.get('/admin/treballadors/afegir', (req, res) => {
 })
 
 app.get('/admin/trajectes/:id', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin == 1) {
         res.redirect('/login');
         return res.end();
     }
@@ -253,7 +290,7 @@ app.get('/admin/trajectes/:id', async (req, res) => {
 })
 
 app.get('/admin/api/hores/:id', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -292,7 +329,7 @@ app.get('/admin/api/hores/:id', async (req, res) => {
 })
 
 app.get('/admin/hores/:id', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -347,7 +384,7 @@ app.get('/admin/hores/:id', async (req, res) => {
 })
 
 app.post('/admin/eliminar-registre', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -393,8 +430,19 @@ app.post('/login', async (req, res) => {
     const result = await pool.query(query);
 
     if (result.length > 0) {
+        if (result[0].actiu == 0) {
+            res.json({type: 'error', message: 'Aquest usuari està donat de baixa'});
+            return res.end();
+        }
+
+        const sql = "SELECT * FROM rols WHERE id = ?";
+        const result2 = await pool.query(sql, [result[0].role]);
+        
         req.session.userId = result[0].id;
-        req.session.role = result[0].role;
+        req.session.role = result[0].role;   
+        req.session.admin = !!result2[0].is_admin; //hell yeah
+
+        console.log(!!result2[0].is_admin)
 
         res.json({type: 'done', message: 'Logged in successfully', redirect: '/dashboard'});
     } else {
@@ -745,7 +793,7 @@ app.get('/admin/api/rols', async (req, res) => {
 })
 
 app.post('/admin/api/registrar-treballador', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -930,7 +978,7 @@ app.get('/trajectes', async (req, res) => {
 })
 
 app.get('/treballadors', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -967,10 +1015,10 @@ app.get('/treballadors', async (req, res) => {
             id: result[i].id, 
             nom: result[i].nom, 
             cognom: result[i].cognom, 
-            rol: result[i].role == -1 ? 'Inactiu' : (result[i].genere ? rol.nom_f : rol.nom_m), 
+            rol: result[i].actiu == 0 ? 'Inactiu' : (result[i].genere ? rol.nom_f : rol.nom_m), 
             horesSetmanals: horesSetmanals, 
             balançHores: balançHores, 
-            estat: result[i].role == -1
+            estat: !!result[i].actiu
         });
     }
 
@@ -978,7 +1026,7 @@ app.get('/treballadors', async (req, res) => {
 })
 
 app.post('/admin/pagar-trajecte', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -997,7 +1045,7 @@ app.post('/admin/pagar-trajecte', async (req, res) => {
 })
 
 app.post('/admin/eliminar-trajecte', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -1016,7 +1064,7 @@ app.post('/admin/eliminar-trajecte', async (req, res) => {
 })
 
 app.post('/admin/regularitzar-hores', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }

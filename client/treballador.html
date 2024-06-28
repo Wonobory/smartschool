@@ -8,8 +8,10 @@
     <script src="/js/jquery.min.js"></script>
     <script src="/js/axios.js"></script>
 
+    <script defer src="/js/micromodal.min.js"></script>
     <script defer src="/js/horari.js"></script>
     <script defer src="/js/adminPanel.js"></script>
+    
     
 
     <link rel="stylesheet" href="/bootstrap/bootstrap.css">
@@ -79,8 +81,8 @@
 
                 <h5 class="header-nou-treballador header">Accions</h5>
                 <div>
-                    <button class="btn btn-danger" onclick="">Donar de baixa</button>
-                    <button class="btn btn-success" onclick="">Cambiar dades</button>
+                    <button class="btn btn-danger" id="donar-de-baixa" data-micromodal-trigger="modal-1">Donar de baixa</button>
+                    <button class="btn btn-primary" onclick="">Cambiar dades</button>
                     <button class="btn btn-info" onclick="">Descarregar informe d'hores</button>
                 </div>
 
@@ -123,3 +125,49 @@
     </div>
 </body>
 </html>
+
+<!-- MODAL -->
+<!-- [1] -->
+<div class="modal micromodal-slide" id="modal-1" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+      <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+        <header class="modal__header">
+          <h2 class="modal__title" id="modal-1-title">
+            Donar de baixa
+          </h2>
+          <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+          <p>
+            Estàs segur que vols donar de baixa a aquest treballador?
+          </p>
+        </main>
+        <footer class="modal__footer" style="display: flex; justify-content: space-between;">
+          <button class="btn btn-secondary" data-micromodal-close aria-label="Close this dialog window">Cancel·lar</button>
+          <button class="btn btn-danger" onclick="donarDeBaixa()">Donar de baixa</button>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal micromodal-slide" id="modal-2" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+      <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-2-title">
+        <header class="modal__header">
+          <h2 class="modal__title" id="modal-2-title">
+            Donar d'alta
+          </h2>
+          <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-2-content">
+          <p>
+            Estàs segur que vols tornar a donar d'alta a aquest treballador?
+          </p>
+        </main>
+        <footer class="modal__footer" style="display: flex; justify-content: space-between;">
+          <button class="btn btn-secondary" data-micromodal-close aria-label="Close this dialog window">Cancel·lar</button>
+          <button class="btn btn-success" onclick="donarAlta()">Donar d'alta</button>
+        </footer>
+      </div>
+    </div>
+  </div>

@@ -67,6 +67,13 @@ function carregarTreballador(dades) {
     const infoBalanç = $('#info-balanç')[0]
     infoBalanç.href = `/admin/hores/${dades.id}`
 
+    const donarDeBaixaButton = $('#donar-de-baixa')[0]
+    if (!dades.actiu) {
+        donarDeBaixaButton.className = 'btn btn-success'
+        donarDeBaixaButton.innerText = "Donar d'alta"
+        donarDeBaixaButton.dataset.micromodalTrigger = 'modal-2'
+    }
+
 }
 
 
@@ -75,6 +82,7 @@ if (window.location.pathname === '/admin' || window.location.pathname === '/admi
 } else if (window.location.pathname.includes('/admin/treballador') && !window.location.pathname.includes('/afegir')) {
     carregarTreballador(dades)
     drawHorari(dades.horari)
+    MicroModal.init()
 } else if (window.location.pathname.includes('/admin/trajectes')) {
     carregarTrajectes()
     carregarInfo(dades.nom, dades.cognom, dades.rol, dades.foto_perfil)
@@ -717,6 +725,27 @@ function crearNouTreballador() {
     }).then(res => {
         console.log(res.data)
         window.location.href = '/admin'
+    }).catch(err => {
+        console.error(err)
+    })
+}
+
+function donarDeBaixa() {
+    axios.post('/admin/api/donar-baixa', {
+        id: dades.id
+    }).then(res => {
+        window.location.reload()
+        console.log(res.data)
+    }).catch(err => {
+        console.error(err)
+    })
+}
+
+function donarAlta() {
+    axios.post('/admin/api/reactivar', {
+        id: dades.id
+    }).then(res => {
+        window.location.reload()
     }).catch(err => {
         console.error(err)
     })
