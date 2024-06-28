@@ -23,7 +23,7 @@
 <body>
     <div class="main-center">
         
-        <nav class="main-navbar">
+        <nav class="main-navbar" style="position: fixed;">
             <div style="width: 100%; display: flex; align-items: center;justify-content: center; margin-top: 2em; margin-bottom: 2em;">
                 <img src="/img/logos/logo_smart_transparent.png" alt="" class="logo">
             </div>
@@ -34,51 +34,66 @@
             </ul>
         </nav>
 
-        <div style="width: 100%; display: flex; justify-content: center;">
+        <div style="width: 100%; display: flex; justify-content: center; margin-left: 10em;">
             <div class="content" style="width: 80%; display: flex; flex-direction: column;" id="output">
-                
+                <div class="sticky-header">
+                    <button class="btn btn-danger" onclick="location.href = '/admin'">Tornar</button>
+                    <button class="btn btn-success" onclick="crearNouTreballador()">Guardar i afegir</button>
+                </div>
+
+                <h5 class="header-nou-treballador" style="margin-top: 3em;">Dades:</h5>
                 <div class="inputs">
                     <div class="nou-treballador">
                         <label for="nom-input">Nom</label>
-                        <input type="text" id="nom-input">
+                        <input type="text" id="nom-input" autocapitalize="words" required>
                     </div>
                     
                     <div class="nou-treballador">
                         <label for="cognoms">Cognoms</label>
-                        <input type="text" id="cognoms">
+                        <input type="text" id="cognoms" autocapitalize="words" required>
+                    </div>
+
+                    <div class="nou-treballador">
+                        <label for="hores-contracte">Gènere:</label>
+                        <select name="genere" id="genere">
+                            <option value="0">Home</option>
+                            <option value="1">Dona</option>
+                            <option value="0">Altres</option>
+                        </select>
                     </div>
                     
                     <div class="nou-treballador">
                         <label for="hores-contracte">Hores contracte:</label>
-                        <input type="number" id="hores-contracte" autocomplete="one-time-code">
+                        <input type="number" id="hores-contracte" autocomplete="one-time-code" required>
                     </div>
 
                     <div class="nou-treballador">
                         <label for="hores-contracte">Rol:</label>
-                        <select name="" id="">
-                            <option value="0">Admin</option>
-                            <option value="1">Treballador</option>
+                        <select name="rols" id="rols">
+                            
                         </select>
                     </div>
 
                     <div class="nou-treballador">
                         <label for="email">Email:</label>
-                        <input type="email" id="field1" autocomplete="off">
+                        <input type="email" id="email" autocomplete="off" required>
                     </div>
     
                     <div class="nou-treballador">
                         <label for="password">Contrasenya:</label>
-                        <input type="password" autocomplete="new-password" id="password">
+                        <input type="password" autocomplete="new-password" id="password" required>
                     </div>
     
                     <div class="nou-treballador">
                         <label for="password">Repeteix la contrasenya:</label>
-                        <input type="password" id="password">
+                        <input type="password" id="password-repeat" autocomplete="new-password" required>
                     </div>
                 </div>
                 
                 
-                <div style="display: flex; justify-content: space-between; " class="calendari-options">
+                <h5 class="header-nou-treballador">Configurar horari:</h5>
+
+                <div style="display: flex; justify-content: space-between; align-items: center;" class="calendari-options">
                     <div>
                         <label for="">Dia</label>
                         <select name="dia-setmana" id="dia-setmana">
@@ -102,7 +117,7 @@
                         <input id="final-time" type="time" required>
                     </div>
                     
-                    <button type="button" class="btn btn-primary" onclick="afegirInputsAlHorari()">
+                    <button type="button" class="btn btn-primary" style="height: fit-content;" onclick="afegirInputsAlHorari()">
                         Afegir al horari
                     </button>
                 </div>
@@ -110,13 +125,6 @@
                 <div class="horari">
                     <div class="dia" data-id="1">
                         <span class="dia-setmana">Dilluns</span>
-
-                        <div class="horari-content">
-                            <img src="/svg/close.svg" alt="close" class="close-button">
-                            <span>12:30</span>
-                            <span> - </span>
-                            <span>14:30</span>
-                        </div>
                     </div>
 
                     <div class="dia" data-id="2">

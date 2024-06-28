@@ -92,6 +92,7 @@ app.get('/', (req, res) => {
 });
 
 
+
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/login');
@@ -169,6 +170,7 @@ app.get('/admin/treballador/:id', (req, res) => {
             absencies: absencies.length,
             absenciesHores: absenciesH,
             foto_perfil: result[0].foto_perfil,
+            horari: JSON.parse(result[0].horari),
         }
             
         const jsonString = JSON.stringify(jsonData);
@@ -200,7 +202,6 @@ app.get('/admin/trajectes/:id', async (req, res) => {
         return res.end();
     }
 
-    console.log(req.session)
     const sql = "SELECT * FROM users WHERE id = ?";
     const result = await pool.query(sql, [req.params.id])
 
@@ -219,7 +220,6 @@ app.get('/admin/trajectes/:id', async (req, res) => {
         }
 
         const rol = await getRols(result[0].role, result[0].genere);
-        console.log(rol[0]);
 
         const trajectes = await getTrajectes(req.params.id);
 
@@ -238,7 +238,6 @@ app.get('/admin/trajectes/:id', async (req, res) => {
             foto_perfil: result[0].foto_perfil,
         }
             
-        console.log(rol.nom_f)
         const jsonString = JSON.stringify(jsonData);
 
 
@@ -733,6 +732,56 @@ app.get('/perfil', async (req, res) => {
     res.json({dataAlta: dataAlta, horesSetmanals: horesSetmanals, balançHores: balançHores, fotoPerfil: result[0].foto_perfil, nom: nom, cognom: cognom, rol: rol});
 })
 
+app.get('/admin/api/rols', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = "SELECT * FROM rols";
+    const result = await pool.query(sql);
+
+    res.json(result);
+})
+
+app.post('/admin/api/registrar-treballador', async (req, res) => {
+    if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const { nom, cognom, genere, hores_mensuals, rol, email, password, horari } = req.body;
+
+    if (!nom || !cognom || !genere || !hores_mensuals || !rol || !email || !password || !horari) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    if (isNaN(hores_mensuals) || hores_mensuals < 0) {
+        res.status(400).json({type: 'error', message: 'Hores mensuals invàlides'});
+        return res.end();
+    }
+
+    if (isNaN(genere) || (genere != 0 && genere != 1)) {
+        res.status(400).json({type: 'error', message: 'Gènere invàlid'});
+        return res.end();
+    }
+
+    const hash = crypto.createHash('sha256').update(password).digest('hex');
+
+    const sql2 = "SELECT * FROM users WHERE email = ?";
+    const result2 = await pool.query(sql2, [email]);
+
+    if (result2.length > 0) {
+        res.status(400).json({type: 'error', message: 'Ja existeix un usuari amb aquest email'});
+        return res.end();
+    }
+
+    const sql = "INSERT INTO users (nom, cognom, role, email, email_notificacions, pass, horari, genere, hores_contracte) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    await pool.query(sql, [nom, cognom, rol, email, email, hash, JSON.stringify(horari), genere, hores_mensuals]);
+    res.json({type: 'done', message: 'Treballador registrat correctament'});
+})
+
 app.post('/afegir-trajecte', async (req, res) => {
     if (!req.session.userId) {
         res.redirect('/login');
@@ -844,7 +893,6 @@ app.post('/canviar-email', async (req, res) => {
 
     const sql = "UPDATE users SET email_notificacions = ? WHERE id = ?";
     var result = await pool.query(sql, [email, req.session.userId]);
-    console.log(result)
 
     res.json({type: 'done', message: 'Email canviat correctament'});
 })
@@ -878,7 +926,6 @@ app.get('/trajectes', async (req, res) => {
         }
     }
 
-    console.log(toReturn);
     return res.json(toReturn);
 })
 

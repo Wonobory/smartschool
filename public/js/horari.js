@@ -1,26 +1,27 @@
-const horari = JSON.parse(`[{"dia":1,"horari":[["10:30","13:30"]]},{"dia":2,"horari":[["10:30","13:30"]]},{"dia":3,"horari":[["10:30","13:30"]]},{"dia":4,"horari":[["10:30","13:30"]]},{"dia":5,"horari":[["10:30","13:30"]]},{"dia":6,"horari":[["10:30","13:30"]]}]`)
-
-/*
-<div class="horari-content">
-    <img src="/svg/close.svg" alt="close" class="close-button">
-    <span>12:30</span>
-    <span> - </span>
-    <span>14:30</span>
-</div>
-*/
-
-function drawHorari(horari) {
+function drawHorari(horari, edit = false) {
     for (var i = 0; i < $('.dia').length; i++) {
         //delete all elements except the first
         $('.dia').eq(i).children().slice(1).remove();
     }
 
+    
     horari.forEach(dia => {
         console.log(dia.dia)
         const $horari = $(`div[data-id=${dia.dia}]`)
+        let i = 0
         dia.horari.forEach(h => {
-            const $horariContent = $('<div>').addClass('horari-content')
-            const $closeButton = $('<img>').attr('src', '/svg/close.svg').attr('alt', 'close').addClass('close-button')
+            const $horariContent = $('<div>').addClass('horari-content').attr('data-id', i)
+            if (edit) {
+                var $closeButton = $('<img>').attr('src', '/svg/close.svg').attr('alt', 'close').addClass('close-button').click(function () {
+                    horariDies.map((dia) => {
+                        if (dia.dia == $horari.attr('data-id')) {
+                            dia.horari.splice($horariContent.attr('data-id'), 1)
+                        }
+                    })
+                    drawHorari(horari, true)
+                })
+            }
+            
             const $start = $('<span>').text(h[0])
             const $separator = $('<span>').text(' - ')
             const $end = $('<span>').text(h[1])
@@ -31,6 +32,7 @@ function drawHorari(horari) {
             $horariContent.append($end)
 
             $horari.append($horariContent)
+            i++
         })
     })
 }

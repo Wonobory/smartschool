@@ -8,8 +8,12 @@
     <script src="/js/jquery.min.js"></script>
     <script src="/js/axios.js"></script>
 
-    <script defer src="/js/mainAdmin.js"></script>
+    <script defer src="/js/horari.js"></script>
     <script defer src="/js/adminPanel.js"></script>
+    
+
+    <link rel="stylesheet" href="/bootstrap/bootstrap.css">
+    <script defer src="/bootstrap/bootstrap.js"></script>
 
     <link rel="stylesheet" href="/css/adminPage.css">
     <link rel="stylesheet" href="/css/treballador.css">
@@ -17,7 +21,7 @@
 <body>
     <div class="main-center">
         
-        <nav class="main-navbar">
+        <nav class="main-navbar" style="position: fixed;">
             <div style="width: 100%; display: flex; align-items: center;justify-content: center; margin-top: 2em; margin-bottom: 2em;">
                 <img src="/img/logos/logo_smart_transparent.png" alt="" class="logo">
             </div>
@@ -28,7 +32,7 @@
             </ul>
         </nav>
 
-        <div style="width: 100%; display: flex; justify-content: center;">
+        <div style="width: 100%; display: flex; justify-content: center; margin-left: 10em;">
             <div class="content" style="width: 70%;" id="output">
                 <div class="profile">
                     <img src="" alt="" id="foto-perfil">
@@ -37,7 +41,9 @@
                         <span id="cognom"></span>
                         <span id="rol"></span>
                     </div>
-                </div>
+                </div>                
+
+                <h5 class="header-nou-treballador header">Estadístiques</h5>
                 <div class="stats">
                     <div class="treballador-linea">
                         <div class="treballador-apartat">
@@ -67,6 +73,47 @@
                             <span>Absències:</span>
                             <span id="absencies"></span>
                             <a href="">+Info</a>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="header-nou-treballador header">Accions</h5>
+                <div>
+                    <button class="btn btn-danger" onclick="">Donar de baixa</button>
+                    <button class="btn btn-success" onclick="">Cambiar dades</button>
+                    <button class="btn btn-info" onclick="">Descarregar informe d'hores</button>
+                </div>
+
+                <div style="margin-top: 2em;">
+                    <h5 class="header-nou-treballador header">Horari programat</h5>
+
+                    <div class="horari" style="margin-top: 3em;">
+                        <div class="dia" data-id="1">
+                            <span class="dia-setmana">Dilluns</span>
+                        </div>
+    
+                        <div class="dia" data-id="2">
+                            <span class="dia-setmana">Dimarts</span>
+                        </div>
+                        
+                        <div class="dia" data-id="3">
+                            <span class="dia-setmana">Dimecres</span>
+                        </div>
+    
+                        <div class="dia" data-id="4">
+                            <span class="dia-setmana">Dijous</span>
+                        </div>
+    
+                        <div class="dia" data-id="5">
+                            <span class="dia-setmana">Divendres</span>
+                        </div>
+    
+                        <div class="dia" data-id="6">
+                            <span class="dia-setmana">Dissabte</span>
+                        </div>
+    
+                        <div class="dia" data-id="0">
+                            <span class="dia-setmana">Diumenge</span>
                         </div>
                     </div>
                 </div>

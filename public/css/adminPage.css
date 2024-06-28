@@ -102,6 +102,17 @@ tr:hover {
 .inputs {
     display: flex;
     flex-direction: column;
+    border-top: 1px solid black;
+    padding-top: 1.5em;
+    margin-top: 0.3em;
+}
+
+.inputs input, select, .calendari-options input {
+    font-size: 16px;
+    padding: 5px;
+    padding-inline: 0.4em;
+    margin-top: 4px;
+    font-weight: 500;
 }
 
 .nou-treballador {
@@ -142,8 +153,8 @@ tr:hover {
 
 .calendari-options {
     margin-bottom: 2em;
-    padding-top: 2em;
-    margin-top: 1em;
+    padding-top: 1.5em;
+    margin-top: 0.3em;
 
     border-top: 1px solid black;
 }
@@ -151,6 +162,15 @@ tr:hover {
 .dia {
     width: -webkit-fill-available;
     padding: 5px;
+    border-right: 1px solid black;
+    min-height: 19em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dia:first-child {
+    border-left: 1px solid black;
 }
 
 .dia-setmana {
@@ -162,13 +182,12 @@ tr:hover {
     background: #97c7ff;
     padding: 1.6em;
     margin-top: 1em;
-    width: 100%;
+    width: 90%;
     border: 3px solid black;
     font-weight: 700;
     border-radius: 8px;
     display: flex;
-    flex-direction: column; 
-    
+    flex-direction: column;
     position: relative;
 }
 
@@ -184,7 +203,7 @@ tr:hover {
 
     position: absolute;
 
-    left: 86%;
+    right: 0;
     transform: translate(-50%, -50%);
     top: 17%;
     cursor: pointer;
@@ -197,4 +216,30 @@ tr:hover {
 
 .close-button:hover {
     background-color: #f44336;
+}
+
+.header-nou-treballador {
+    font-weight: 700;
+    margin-top: 2em;
+}
+
+.sticky-header {
+    position: fixed;
+    background: white;
+    width: calc(100% - 10em);
+    top: 0;
+    left: 10em;
+    display: flex;
+    justify-content: space-between;
+    height: 4em;
+    align-items: center;
+    padding: 2em;
+    border-bottom: 2px solid black;
+}
+
+.header {
+    width: 100%;
+
+    border-bottom: 1px solid black;
+    padding-bottom: 0.5em;
 }

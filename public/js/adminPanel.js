@@ -1,5 +1,6 @@
 const MOTIUS = ["Festiu", "Canvi de torn", "Personal", "Absentisme", "Baixa mèdica", "Permís retribuït", "Vacances"];
 var horariDies = [];
+var rols;
 
 function carregarTreballadors() {
     axios.get('/treballadors', {params: {query: $('#search-bar')[0].value}}).then(res => {
@@ -68,10 +69,12 @@ function carregarTreballador(dades) {
 
 }
 
+
 if (window.location.pathname === '/admin' || window.location.pathname === '/admin/') {
     carregarTreballadors()
-} else if (window.location.pathname.includes('/admin/treballador')) {
+} else if (window.location.pathname.includes('/admin/treballador') && !window.location.pathname.includes('/afegir')) {
     carregarTreballador(dades)
+    drawHorari(dades.horari)
 } else if (window.location.pathname.includes('/admin/trajectes')) {
     carregarTrajectes()
     carregarInfo(dades.nom, dades.cognom, dades.rol, dades.foto_perfil)
@@ -85,6 +88,8 @@ if (window.location.pathname === '/admin' || window.location.pathname === '/admi
     carregarInfo(dades.nom, dades.cognom, dades.rol, dades.foto_perfil)
     carregarHoresMes()
     gestionarDeFins()
+} else if (window.location.pathname.includes('/admin/treballadors/afegir')) {
+    carregarAfegirNouTreballador()
 }
 
 function gestionarDeFins() {
@@ -628,7 +633,7 @@ function afegirDiaAlHorari(dia, from, to) {
 
 
     console.log(horariDies)
-    drawHorari(horariDies)
+    drawHorari(horariDies, true)
 }
 
 function afegirInputsAlHorari() {
@@ -659,6 +664,60 @@ function afegirInputsAlHorari() {
         return
     }
 
-    afegirDiaAlHorari(dia.value, from.value, to.value)
+    afegirDiaAlHorari(parseInt(dia.value), from.value, to.value)
 }
 
+function carregarAfegirNouTreballador() {
+    //Carregar el select dels rols que hi han
+    const rolsSelect = $('#rols')[0]
+    axios.get('/admin/api/rols').then(res => {
+        rolsSelect.innerHTML = ''
+        rols = res.data
+        res.data.forEach(rol => {
+            rolsSelect.innerHTML += `
+                <option value="${rol.id}">${rol.nom_m}</option> 
+            `
+        })
+    }).catch(err => {
+        console.error(err)
+    })
+}
+
+function crearNouTreballador() {
+    const nom = $('#nom-input')[0]
+    const cognoms = $('#cognoms')[0]
+    const genere = $('#genere')[0]
+    const hores = $('#hores-contracte')[0]
+    const rol = $('#rols')[0]
+    const email = $('#email')[0]
+    const password = $('#password')[0]
+
+    const repeatPassword = $('#password-repeat')[0]
+    const horari = horariDies
+
+    if (!nom.reportValidity() || !cognoms.reportValidity() || !genere.reportValidity() || !hores.reportValidity() || !rol.reportValidity() || !email.reportValidity() || !password.reportValidity() || !repeatPassword.reportValidity()) {
+        return
+    }
+
+    if (password.value != repeatPassword.value) {
+        repeatPassword.setCustomValidity('Les contrasenyes no coincideixen')
+        repeatPassword.reportValidity()
+        return
+    }
+    
+    axios.post('/admin/api/registrar-treballador', {
+        nom: nom.value,
+        cognom: cognoms.value,
+        genere: genere.value,
+        hores_mensuals: hores.value,
+        rol: rol.value,
+        email: email.value,
+        password: password.value,
+        horari: horari
+    }).then(res => {
+        console.log(res.data)
+        window.location.href = '/admin'
+    }).catch(err => {
+        console.error(err)
+    })
+}
