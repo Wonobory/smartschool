@@ -42,7 +42,7 @@ function carregarRegularitzacions() {
         res.data.regularitzacions.forEach(dia => {
             canvis.push({
                 dia: dia,
-                canviBalanç: dia.hores,
+                canviBalanç: -dia.hores,
                 regularitzacio: true
             })
 
@@ -71,7 +71,7 @@ function carregarRegularitzacions() {
                 span.innerHTML = "Regularització:";
 
                 const span2 = document.createElement('span');
-                span2.innerHTML = (-totalReg).toFixed(2) + ' h';
+                span2.innerHTML = (dia.canviBalanç).toFixed(2) + ' h';
 
                 div2.appendChild(span);
                 div2.appendChild(span2);

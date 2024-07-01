@@ -37,8 +37,8 @@
         <div style="width: 100%; display: flex; justify-content: center; margin-left: 10em;">
             <div class="content" style="width: 80%; display: flex; flex-direction: column;" id="output">
                 <div class="sticky-header">
-                    <button class="btn btn-danger" onclick="location.href = '/admin'">Tornar</button>
-                    <button class="btn btn-success" onclick="crearNouTreballador()">Guardar i afegir</button>
+                    <button class="btn btn-danger" id="tornar-button">Tornar</button>
+                    <button class="btn btn-success" onclick="enviarCambiarDadesTreballador()">Guardar</button>
                 </div>
 
                 <h5 class="header-nou-treballador" style="margin-top: 3em;">Dades:</h5>
@@ -77,16 +77,6 @@
                     <div class="nou-treballador">
                         <label for="email">Email:</label>
                         <input type="email" id="email" autocomplete="off" required>
-                    </div>
-    
-                    <div class="nou-treballador">
-                        <label for="password">Contrasenya:</label>
-                        <input type="password" autocomplete="new-password" id="password" required>
-                    </div>
-    
-                    <div class="nou-treballador">
-                        <label for="password">Repeteix la contrasenya:</label>
-                        <input type="password" id="password-repeat" autocomplete="new-password" required>
                     </div>
                 </div>
                 

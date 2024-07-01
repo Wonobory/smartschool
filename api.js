@@ -92,6 +92,7 @@ app.get('/', (req, res) => {
 });
 
 
+
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/login');
@@ -99,15 +100,51 @@ app.get('/logout', (req, res) => {
 })
 
 app.get('/admin', (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
+
+        console.log(req.session.admin, req.session.userId)
         return res.end();
     }
     res.sendFile(path.join(__dirname, '/client/treballadors.html'));
 })
 
-app.get('/admin/treballador/:id', (req, res) => {
+app.post('/admin/api/donar-baixa', async (req, res) => {
     if (!req.session.userId || req.session.role == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.id) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const sql = "UPDATE users SET actiu = 0 WHERE id = ?";
+    await pool.query(sql, [req.body.id]);
+
+    res.json({type: 'done', message: 'Usuari donat de baixa correctament'});
+})
+
+app.post('/admin/api/reactivar', async (req, res) => {
+    if (!req.session.userId || !req.session.admin) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.id) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const sql = "UPDATE users SET actiu = 1 WHERE id = ?";
+    await pool.query(sql, [req.body.id]);
+    res.json({type: 'done', message: 'Usuari reactivat correctament'});
+})
+    
+
+app.get('/admin/treballador/:id', (req, res) => {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -169,6 +206,8 @@ app.get('/admin/treballador/:id', (req, res) => {
             absencies: absencies.length,
             absenciesHores: absenciesH,
             foto_perfil: result[0].foto_perfil,
+            horari: JSON.parse(result[0].horari),
+            actiu: result[0].actiu,
         }
             
         const jsonString = JSON.stringify(jsonData);
@@ -186,7 +225,7 @@ app.get('/admin/treballador/:id', (req, res) => {
 })
 
 app.get('/admin/treballadors/afegir', (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -194,13 +233,107 @@ app.get('/admin/treballadors/afegir', (req, res) => {
     res.sendFile(path.join(__dirname, '/client/nou_treballador.html'));
 })
 
-app.get('/admin/trajectes/:id', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+app.get('/admin/treballadors/cambiar-dades/:id', async (req, res) => {
+    if (!req.session.userId || !req.session.admin == 1) {
         res.redirect('/login');
         return res.end();
     }
 
-    console.log(req.session)
+    const sql = "SELECT * FROM users WHERE id = ?";
+    const result = await pool.query(sql, [req.params.id])
+
+    if (result.length == 0) {
+        res.sendFile(path.join(__dirname, '/client/404.html'));
+        return res.end();
+    }
+
+    const filePath = path.join(__dirname, '/client/cambiar_dades_treballador.html'); 
+
+
+    // Lee el archivo
+    fs.readFile(filePath, 'utf8', async (err, data) => {
+        if (err) {
+            return res.status(500).send('Error al leer el archivo');
+        }
+
+        const rol = await getRols(result[0].role, result[0].genere);
+
+        /*
+        Necessitem:
+        Nom,
+        Cognom,
+        Genere,
+        Hores contracte,
+        Rol,
+        Email,
+        Horari
+        */
+
+        const jsonData = {
+            id: result[0].id,
+            nom: result[0].nom,
+            cognom: result[0].cognom,
+            genere: result[0].genere,
+            hores_contracte: result[0].hores_contracte,
+            role: result[0].role,
+            email: result[0].email,
+            horari: JSON.parse(result[0].horari),
+        }
+            
+        const jsonString = JSON.stringify(jsonData);
+
+
+        const scriptTag = `<script>
+            const dades = ${jsonString};
+        </script>`;
+
+        const modifiedData = `${scriptTag}\n${data}`;
+
+        res.setHeader('Content-Type', 'text/html');
+        res.send(modifiedData);
+    });
+})
+
+app.post('/admin/api/cambiar-dades', async (req, res) => {
+    if (!req.session.userId || !req.session.admin == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.id) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const { nom, cognom, genere, hores_contracte, role, email, horari } = req.body;
+
+    if (!nom || !cognom || !genere || !hores_contracte || !role || !email || !horari) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    if (isNaN(hores_contracte) || hores_contracte < 0) {
+        res.status(400).json({type: 'error', message: 'Hores contracte invàlides'});
+        return res.end();
+    }
+
+    if (isNaN(role) || role < 0) {
+        res.status(400).json({type: 'error', message: 'Rol invàlid'});
+        return res.end();
+    }
+
+    const sql = "UPDATE users SET nom = ?, cognom = ?, genere = ?, hores_contracte = ?, role = ?, email = ?, email_notificacions = ?, horari = ? WHERE id = ?";
+    await pool.query(sql, [nom, cognom, genere, hores_contracte, role, email, email, JSON.stringify(horari), req.body.id]);
+
+    res.json({type: 'done', message: 'Dades actualitzades correctament'});
+})
+
+app.get('/admin/trajectes/:id', async (req, res) => {
+    if (!req.session.userId || !req.session.admin == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
     const sql = "SELECT * FROM users WHERE id = ?";
     const result = await pool.query(sql, [req.params.id])
 
@@ -219,7 +352,6 @@ app.get('/admin/trajectes/:id', async (req, res) => {
         }
 
         const rol = await getRols(result[0].role, result[0].genere);
-        console.log(rol[0]);
 
         const trajectes = await getTrajectes(req.params.id);
 
@@ -238,7 +370,6 @@ app.get('/admin/trajectes/:id', async (req, res) => {
             foto_perfil: result[0].foto_perfil,
         }
             
-        console.log(rol.nom_f)
         const jsonString = JSON.stringify(jsonData);
 
 
@@ -254,7 +385,7 @@ app.get('/admin/trajectes/:id', async (req, res) => {
 })
 
 app.get('/admin/api/hores/:id', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -293,7 +424,7 @@ app.get('/admin/api/hores/:id', async (req, res) => {
 })
 
 app.get('/admin/hores/:id', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -348,7 +479,7 @@ app.get('/admin/hores/:id', async (req, res) => {
 })
 
 app.post('/admin/eliminar-registre', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -394,8 +525,19 @@ app.post('/login', async (req, res) => {
     const result = await pool.query(query);
 
     if (result.length > 0) {
+        if (result[0].actiu == 0) {
+            res.json({type: 'error', message: 'Aquest usuari està donat de baixa'});
+            return res.end();
+        }
+
+        const sql = "SELECT * FROM rols WHERE id = ?";
+        const result2 = await pool.query(sql, [result[0].role]);
+        
         req.session.userId = result[0].id;
-        req.session.role = result[0].role;
+        req.session.role = result[0].role;   
+        req.session.admin = !!result2[0].is_admin; //hell yeah
+
+        console.log(!!result2[0].is_admin)
 
         res.json({type: 'done', message: 'Logged in successfully', redirect: '/dashboard'});
     } else {
@@ -617,11 +759,19 @@ app.get('/registre-mensual', async (req, res) => {
         return res.end();
     }
 
-    const sql = `SELECT * FROM horaris_validats WHERE user_id = ${req.session.userId} AND MONTH(dia) = MONTH(CURRENT_DATE()) AND YEAR(dia) = YEAR(CURRENT_DATE())`;
-    const result = await pool.query(sql);
+    const { mes, any } = req.query;
 
-    const sql2 = `SELECT * FROM absencies WHERE user_id = ${req.session.userId} AND MONTH(dia) = MONTH(CURRENT_DATE()) AND YEAR(dia) = YEAR(CURRENT_DATE())`;
-    const result2 = await pool.query(sql2);
+    if (!mes || !any) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    //last: `SELECT * FROM horaris_validats WHERE user_id = ${req.session.userId} AND MONTH(dia) = MONTH(CURRENT_DATE()) AND YEAR(dia) = YEAR(CURRENT_DATE())`;
+    const sql = "SELECT * FROM horaris_validats WHERE user_id = ? AND MONTH(dia) = ? AND YEAR(dia) = ?";
+    const result = await pool.query(sql, [req.session.userId, mes, any]);
+
+    const sql2 = "SELECT * FROM absencies WHERE user_id = ? AND MONTH(dia) = ? AND YEAR(dia) = ?";
+    const result2 = await pool.query(sql2, [req.session.userId, mes, any]);
 
     /*
     [{
@@ -731,6 +881,56 @@ app.get('/perfil', async (req, res) => {
    
 
     res.json({dataAlta: dataAlta, horesSetmanals: horesSetmanals, balançHores: balançHores, fotoPerfil: result[0].foto_perfil, nom: nom, cognom: cognom, rol: rol});
+})
+
+app.get('/admin/api/rols', async (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = "SELECT * FROM rols";
+    const result = await pool.query(sql);
+
+    res.json(result);
+})
+
+app.post('/admin/api/registrar-treballador', async (req, res) => {
+    if (!req.session.userId || !req.session.admin) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const { nom, cognom, genere, hores_mensuals, rol, email, password, horari } = req.body;
+
+    if (!nom || !cognom || !genere || !hores_mensuals || !rol || !email || !password || !horari) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    if (isNaN(hores_mensuals) || hores_mensuals < 0) {
+        res.status(400).json({type: 'error', message: 'Hores mensuals invàlides'});
+        return res.end();
+    }
+
+    if (isNaN(genere) || (genere != 0 && genere != 1)) {
+        res.status(400).json({type: 'error', message: 'Gènere invàlid'});
+        return res.end();
+    }
+
+    const hash = crypto.createHash('sha256').update(password).digest('hex');
+
+    const sql2 = "SELECT * FROM users WHERE email = ?";
+    const result2 = await pool.query(sql2, [email]);
+
+    if (result2.length > 0) {
+        res.status(400).json({type: 'error', message: 'Ja existeix un usuari amb aquest email'});
+        return res.end();
+    }
+
+    const sql = "INSERT INTO users (nom, cognom, role, email, email_notificacions, pass, horari, genere, hores_contracte) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    await pool.query(sql, [nom, cognom, rol, email, email, hash, JSON.stringify(horari), genere, hores_mensuals]);
+    res.json({type: 'done', message: 'Treballador registrat correctament'});
 })
 
 app.post('/afegir-trajecte', async (req, res) => {
@@ -844,7 +1044,6 @@ app.post('/canviar-email', async (req, res) => {
 
     const sql = "UPDATE users SET email_notificacions = ? WHERE id = ?";
     var result = await pool.query(sql, [email, req.session.userId]);
-    console.log(result)
 
     res.json({type: 'done', message: 'Email canviat correctament'});
 })
@@ -878,12 +1077,11 @@ app.get('/trajectes', async (req, res) => {
         }
     }
 
-    console.log(toReturn);
     return res.json(toReturn);
 })
 
 app.get('/treballadors', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -920,10 +1118,10 @@ app.get('/treballadors', async (req, res) => {
             id: result[i].id, 
             nom: result[i].nom, 
             cognom: result[i].cognom, 
-            rol: result[i].role == -1 ? 'Inactiu' : (result[i].genere ? rol.nom_f : rol.nom_m), 
+            rol: result[i].actiu == 0 ? 'Inactiu' : (result[i].genere ? rol.nom_f : rol.nom_m), 
             horesSetmanals: horesSetmanals, 
             balançHores: balançHores, 
-            estat: result[i].role == -1
+            estat: !result[i].actiu // True si està donat de baixa
         });
     }
 
@@ -931,7 +1129,7 @@ app.get('/treballadors', async (req, res) => {
 })
 
 app.post('/admin/pagar-trajecte', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -950,7 +1148,7 @@ app.post('/admin/pagar-trajecte', async (req, res) => {
 })
 
 app.post('/admin/eliminar-trajecte', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }
@@ -969,7 +1167,7 @@ app.post('/admin/eliminar-trajecte', async (req, res) => {
 })
 
 app.post('/admin/regularitzar-hores', async (req, res) => {
-    if (!req.session.userId || req.session.role == 1) {
+    if (!req.session.userId || !req.session.admin) {
         res.redirect('/login');
         return res.end();
     }

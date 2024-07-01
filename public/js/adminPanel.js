@@ -1,5 +1,6 @@
 const MOTIUS = ["Festiu", "Canvi de torn", "Personal", "Absentisme", "Baixa mèdica", "Permís retribuït", "Vacances"];
 var horariDies = [];
+var rols;
 
 function carregarTreballadors() {
     axios.get('/treballadors', {params: {query: $('#search-bar')[0].value}}).then(res => {
@@ -20,9 +21,11 @@ function carregarTreballadors() {
                     <td>${treballador.rol}</td>
                     <td>${treballador.horesSetmanals}h</td>
                     <td>${treballador.balançHores.toFixed(2)}h</td>
-                    <td class="estat">${treballador.estat ? 'Inactiu' : 'Actiu'}</td>
+                    <td class="estat"><span style="background-color: ${treballador.estat ? '#ff4d50' : '#84dc56'};" class="estat">${treballador.estat ? 'Inactiu' : 'Actiu'}</span></td>
                 </tr>
             `
+
+            // ${treballador.estat ? 'Inactiu' : 'Actiu'}
         })
                 
     })
@@ -66,12 +69,25 @@ function carregarTreballador(dades) {
     const infoBalanç = $('#info-balanç')[0]
     infoBalanç.href = `/admin/hores/${dades.id}`
 
+    const donarDeBaixaButton = $('#donar-de-baixa')[0]
+    if (!dades.actiu) {
+        donarDeBaixaButton.className = 'btn btn-success'
+        donarDeBaixaButton.innerText = "Donar d'alta"
+        donarDeBaixaButton.dataset.micromodalTrigger = 'modal-2'
+    }
+
+    $('#cambiar-dades')[0].onclick = () => {
+        window.location.href = `/admin/treballadors/cambiar-dades/${dades.id}`
+    }
 }
+
 
 if (window.location.pathname === '/admin' || window.location.pathname === '/admin/') {
     carregarTreballadors()
-} else if (window.location.pathname.includes('/admin/treballador')) {
+} else if (window.location.pathname.includes('/admin/treballador') && !window.location.pathname.includes('/afegir') && !window.location.pathname.includes('/cambiar-dades')) {
     carregarTreballador(dades)
+    drawHorari(dades.horari)
+    MicroModal.init()
 } else if (window.location.pathname.includes('/admin/trajectes')) {
     carregarTrajectes()
     carregarInfo(dades.nom, dades.cognom, dades.rol, dades.foto_perfil)
@@ -85,6 +101,10 @@ if (window.location.pathname === '/admin' || window.location.pathname === '/admi
     carregarInfo(dades.nom, dades.cognom, dades.rol, dades.foto_perfil)
     carregarHoresMes()
     gestionarDeFins()
+} else if (window.location.pathname.includes('/admin/treballadors/afegir')) {
+    carregarAfegirNouTreballador()
+} else if (window.location.pathname.includes('/admin/treballadors/cambiar-dades')) {
+    carregarCambiarDadesTreballador()
 }
 
 function gestionarDeFins() {
@@ -107,6 +127,48 @@ function carregarInfo(nom, cognom, rol, fotoPerfil) {
     $('#cognom')[0].innerText = cognom
     $('#rol')[0].innerText = rol
     $('#foto-perfil').attr('src', `/uploads/${fotoPerfil}`)
+}
+
+async function carregarCambiarDadesTreballador() {
+    await carregarAfegirNouTreballador()
+    const nom = $('#nom-input')[0]
+    const cognoms = $('#cognoms')[0]
+    const genere = $('#genere')[0]
+    const hores = $('#hores-contracte')[0]
+    const rol = $('#rols')[0]
+    const email = $('#email')[0]
+
+    nom.value = dades.nom
+    cognoms.value = dades.cognom
+    genere.value = dades.genere
+    hores.value = dades.hores_contracte
+    rol.value = dades.role
+    email.value = dades.email
+
+    drawHorari(dades.horari, true)
+    $('#tornar-button')[0].onclick = () => {
+        window.location.href = `/admin/treballador/${dades.id}`
+    }
+}
+
+
+function enviarCambiarDadesTreballador() {
+    axios.post('/admin/api/cambiar-dades', 
+        {
+            id: dades.id,
+            nom: $('#nom-input')[0].value,
+            cognom: $('#cognoms')[0].value,
+            genere: $('#genere')[0].value,
+            hores_contracte: $('#hores-contracte')[0].value,
+            role: $('#rols')[0].value,
+            email: $('#email')[0].value,
+            horari: horariDies,
+        }).then(res => {
+            console.log(res.data)
+            window.location.href = '/admin/treballador/' + dades.id
+        }).catch(err => {
+            console.error(err)
+        })
 }
 
 function carregarTrajectes() {
@@ -628,7 +690,7 @@ function afegirDiaAlHorari(dia, from, to) {
 
 
     console.log(horariDies)
-    drawHorari(horariDies)
+    drawHorari(horariDies, true)
 }
 
 function afegirInputsAlHorari() {
@@ -659,6 +721,86 @@ function afegirInputsAlHorari() {
         return
     }
 
-    afegirDiaAlHorari(dia.value, from.value, to.value)
+    afegirDiaAlHorari(parseInt(dia.value), from.value, to.value)
 }
 
+function carregarAfegirNouTreballador() {
+    //Carregar el select dels rols que hi han
+
+    return new Promise((resolve, reject) => {
+        const rolsSelect = $('#rols')[0]
+        axios.get('/admin/api/rols').then(res => {
+            rolsSelect.innerHTML = ''
+            rols = res.data
+            res.data.forEach(rol => {
+                rolsSelect.innerHTML += `
+                    <option value="${rol.id}">${rol.nom_m}</option> 
+                `
+            })
+            resolve()
+        }).catch(err => {
+            console.error(err)
+            reject()
+        })
+    })
+}
+
+function crearNouTreballador() {
+    const nom = $('#nom-input')[0]
+    const cognoms = $('#cognoms')[0]
+    const genere = $('#genere')[0]
+    const hores = $('#hores-contracte')[0]
+    const rol = $('#rols')[0]
+    const email = $('#email')[0]
+    const password = $('#password')[0]
+
+    const repeatPassword = $('#password-repeat')[0]
+    const horari = horariDies
+
+    if (!nom.reportValidity() || !cognoms.reportValidity() || !genere.reportValidity() || !hores.reportValidity() || !rol.reportValidity() || !email.reportValidity() || !password.reportValidity() || !repeatPassword.reportValidity()) {
+        return
+    }
+
+    if (password.value != repeatPassword.value) {
+        repeatPassword.setCustomValidity('Les contrasenyes no coincideixen')
+        repeatPassword.reportValidity()
+        return
+    }
+    
+    axios.post('/admin/api/registrar-treballador', {
+        nom: nom.value,
+        cognom: cognoms.value,
+        genere: genere.value,
+        hores_mensuals: hores.value,
+        rol: rol.value,
+        email: email.value,
+        password: password.value,
+        horari: horari
+    }).then(res => {
+        console.log(res.data)
+        window.location.href = '/admin'
+    }).catch(err => {
+        console.error(err)
+    })
+}
+
+function donarDeBaixa() {
+    axios.post('/admin/api/donar-baixa', {
+        id: dades.id
+    }).then(res => {
+        window.location.reload()
+        console.log(res.data)
+    }).catch(err => {
+        console.error(err)
+    })
+}
+
+function donarAlta() {
+    axios.post('/admin/api/reactivar', {
+        id: dades.id
+    }).then(res => {
+        window.location.reload()
+    }).catch(err => {
+        console.error(err)
+    })
+}

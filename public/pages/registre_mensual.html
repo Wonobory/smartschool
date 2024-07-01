@@ -6,7 +6,11 @@
 
     <div class="basic-menu-body">
         <div class="title-registre-diari">
-            <span id="mes-any"></span>
+            <div style="display: flex; flex-direction: row; align-items: center;">
+                <div onclick="goBack()" class="back-button calendar-button">&#8249</div>
+                <span id="mes-any"></span>
+                <div onclick="goForth()" class="forth-button calendar-button">&#8250</div>
+            </div>
             <span id="hores-totals-del-mes">1.00h</span>
         </div>
         <div id="registres">

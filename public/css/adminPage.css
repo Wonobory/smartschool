@@ -102,6 +102,17 @@ tr:hover {
 .inputs {
     display: flex;
     flex-direction: column;
+    border-top: 1px solid black;
+    padding-top: 1.5em;
+    margin-top: 0.3em;
+}
+
+.inputs input, select, .calendari-options input {
+    font-size: 16px;
+    padding: 5px;
+    padding-inline: 0.4em;
+    margin-top: 4px;
+    font-weight: 500;
 }
 
 .nou-treballador {
@@ -142,8 +153,8 @@ tr:hover {
 
 .calendari-options {
     margin-bottom: 2em;
-    padding-top: 2em;
-    margin-top: 1em;
+    padding-top: 1.5em;
+    margin-top: 0.3em;
 
     border-top: 1px solid black;
 }
@@ -151,6 +162,15 @@ tr:hover {
 .dia {
     width: -webkit-fill-available;
     padding: 5px;
+    border-right: 1px solid black;
+    min-height: 19em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dia:first-child {
+    border-left: 1px solid black;
 }
 
 .dia-setmana {
@@ -162,13 +182,12 @@ tr:hover {
     background: #97c7ff;
     padding: 1.6em;
     margin-top: 1em;
-    width: 100%;
+    width: 90%;
     border: 3px solid black;
     font-weight: 700;
     border-radius: 8px;
     display: flex;
-    flex-direction: column; 
-    
+    flex-direction: column;
     position: relative;
 }
 
@@ -184,7 +203,7 @@ tr:hover {
 
     position: absolute;
 
-    left: 86%;
+    right: 0;
     transform: translate(-50%, -50%);
     top: 17%;
     cursor: pointer;
@@ -197,4 +216,165 @@ tr:hover {
 
 .close-button:hover {
     background-color: #f44336;
+}
+
+.header-nou-treballador {
+    font-weight: 700;
+    margin-top: 2em;
+}
+
+.sticky-header {
+    position: fixed;
+    background: white;
+    width: calc(100% - 10em);
+    top: 0;
+    left: 10em;
+    display: flex;
+    justify-content: space-between;
+    height: 4em;
+    align-items: center;
+    padding: 2em;
+    border-bottom: 2px solid black;
+}
+
+.header {
+    width: 100%;
+
+    border-bottom: 1px solid black;
+    padding-bottom: 0.5em;
+}
+
+
+/* Modal */
+
+.modal {
+  font-family: 'Inter', sans-serif;
+}
+
+.modal__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal__container {
+  background-color: #fff;
+  padding: 30px;
+  max-width: 500px;
+  max-height: 100vh;
+  border-radius: 4px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal__title {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.25;
+  color: #00449e;
+  box-sizing: border-box;
+}
+
+.modal__close {
+  background: transparent;
+  border: 0;
+}
+
+.modal__header .modal__close:before { content: "\2715"; }
+
+.modal__content {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+  color: rgba(0,0,0,.8);
+}
+
+
+
+/**************************\
+  Demo Animation Style
+\**************************/
+@keyframes mmfadeIn {
+    from { opacity: 0; }
+      to { opacity: 1; }
+}
+
+@keyframes mmfadeOut {
+    from { opacity: 1; }
+      to { opacity: 0; }
+}
+
+@keyframes mmslideIn {
+  from { transform: translateY(15%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes mmslideOut {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10%); }
+}
+
+.micromodal-slide {
+  display: none;
+}
+
+.micromodal-slide.is-open {
+  display: block;
+}
+
+.micromodal-slide[aria-hidden="false"] .modal__overlay {
+  animation: mmfadeIn .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+.micromodal-slide[aria-hidden="false"] .modal__container {
+  animation: mmslideIn .3s cubic-bezier(0, 0, .2, 1);
+}
+
+.micromodal-slide[aria-hidden="true"] .modal__overlay {
+  animation: mmfadeOut .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+.micromodal-slide[aria-hidden="true"] .modal__container {
+  animation: mmslideOut .3s cubic-bezier(0, 0, .2, 1);
+}
+
+.micromodal-slide .modal__container,
+.micromodal-slide .modal__overlay {
+  will-change: transform;
+}
+
+.estat {
+  padding: 5px;
+  display: block;
+  font-weight: 600;
+  border-radius: 4px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.unneeded::after {
+  content: "* No necessari";
+  color: #f44336;
+
+  font-size: 12px;
+  position: absolute;
+  right: 0;
+}
+
+.unneeded {
+  position: relative;
 }
