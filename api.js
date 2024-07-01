@@ -233,6 +233,101 @@ app.get('/admin/treballadors/afegir', (req, res) => {
     res.sendFile(path.join(__dirname, '/client/nou_treballador.html'));
 })
 
+app.get('/admin/treballadors/cambiar-dades/:id', async (req, res) => {
+    if (!req.session.userId || !req.session.admin == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    const sql = "SELECT * FROM users WHERE id = ?";
+    const result = await pool.query(sql, [req.params.id])
+
+    if (result.length == 0) {
+        res.sendFile(path.join(__dirname, '/client/404.html'));
+        return res.end();
+    }
+
+    const filePath = path.join(__dirname, '/client/cambiar_dades_treballador.html'); 
+
+
+    // Lee el archivo
+    fs.readFile(filePath, 'utf8', async (err, data) => {
+        if (err) {
+            return res.status(500).send('Error al leer el archivo');
+        }
+
+        const rol = await getRols(result[0].role, result[0].genere);
+
+        /*
+        Necessitem:
+        Nom,
+        Cognom,
+        Genere,
+        Hores contracte,
+        Rol,
+        Email,
+        Horari
+        */
+
+        const jsonData = {
+            id: result[0].id,
+            nom: result[0].nom,
+            cognom: result[0].cognom,
+            genere: result[0].genere,
+            hores_contracte: result[0].hores_contracte,
+            role: result[0].role,
+            email: result[0].email,
+            horari: JSON.parse(result[0].horari),
+        }
+            
+        const jsonString = JSON.stringify(jsonData);
+
+
+        const scriptTag = `<script>
+            const dades = ${jsonString};
+        </script>`;
+
+        const modifiedData = `${scriptTag}\n${data}`;
+
+        res.setHeader('Content-Type', 'text/html');
+        res.send(modifiedData);
+    });
+})
+
+app.post('/admin/api/cambiar-dades', async (req, res) => {
+    if (!req.session.userId || !req.session.admin == 1) {
+        res.redirect('/login');
+        return res.end();
+    }
+
+    if (!req.body.id) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    const { nom, cognom, genere, hores_contracte, role, email, horari } = req.body;
+
+    if (!nom || !cognom || !genere || !hores_contracte || !role || !email || !horari) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    if (isNaN(hores_contracte) || hores_contracte < 0) {
+        res.status(400).json({type: 'error', message: 'Hores contracte invàlides'});
+        return res.end();
+    }
+
+    if (isNaN(role) || role < 0) {
+        res.status(400).json({type: 'error', message: 'Rol invàlid'});
+        return res.end();
+    }
+
+    const sql = "UPDATE users SET nom = ?, cognom = ?, genere = ?, hores_contracte = ?, role = ?, email = ?, email_notificacions = ?, horari = ? WHERE id = ?";
+    await pool.query(sql, [nom, cognom, genere, hores_contracte, role, email, email, JSON.stringify(horari), req.body.id]);
+
+    res.json({type: 'done', message: 'Dades actualitzades correctament'});
+})
+
 app.get('/admin/trajectes/:id', async (req, res) => {
     if (!req.session.userId || !req.session.admin == 1) {
         res.redirect('/login');
@@ -664,11 +759,19 @@ app.get('/registre-mensual', async (req, res) => {
         return res.end();
     }
 
-    const sql = `SELECT * FROM horaris_validats WHERE user_id = ${req.session.userId} AND MONTH(dia) = MONTH(CURRENT_DATE()) AND YEAR(dia) = YEAR(CURRENT_DATE())`;
-    const result = await pool.query(sql);
+    const { mes, any } = req.query;
 
-    const sql2 = `SELECT * FROM absencies WHERE user_id = ${req.session.userId} AND MONTH(dia) = MONTH(CURRENT_DATE()) AND YEAR(dia) = YEAR(CURRENT_DATE())`;
-    const result2 = await pool.query(sql2);
+    if (!mes || !any) {
+        res.status(400).json({type: 'error', message: 'Falten dades'});
+        return res.end();
+    }
+
+    //last: `SELECT * FROM horaris_validats WHERE user_id = ${req.session.userId} AND MONTH(dia) = MONTH(CURRENT_DATE()) AND YEAR(dia) = YEAR(CURRENT_DATE())`;
+    const sql = "SELECT * FROM horaris_validats WHERE user_id = ? AND MONTH(dia) = ? AND YEAR(dia) = ?";
+    const result = await pool.query(sql, [req.session.userId, mes, any]);
+
+    const sql2 = "SELECT * FROM absencies WHERE user_id = ? AND MONTH(dia) = ? AND YEAR(dia) = ?";
+    const result2 = await pool.query(sql2, [req.session.userId, mes, any]);
 
     /*
     [{
@@ -1018,7 +1121,7 @@ app.get('/treballadors', async (req, res) => {
             rol: result[i].actiu == 0 ? 'Inactiu' : (result[i].genere ? rol.nom_f : rol.nom_m), 
             horesSetmanals: horesSetmanals, 
             balançHores: balançHores, 
-            estat: !!result[i].actiu
+            estat: !result[i].actiu // True si està donat de baixa
         });
     }
 

@@ -356,3 +356,25 @@ tr:hover {
 .micromodal-slide .modal__overlay {
   will-change: transform;
 }
+
+.estat {
+  padding: 5px;
+  display: block;
+  font-weight: 600;
+  border-radius: 4px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.unneeded::after {
+  content: "* No necessari";
+  color: #f44336;
+
+  font-size: 12px;
+  position: absolute;
+  right: 0;
+}
+
+.unneeded {
+  position: relative;
+}

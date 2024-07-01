@@ -21,9 +21,11 @@ function carregarTreballadors() {
                     <td>${treballador.rol}</td>
                     <td>${treballador.horesSetmanals}h</td>
                     <td>${treballador.balançHores.toFixed(2)}h</td>
-                    <td class="estat">${treballador.estat ? 'Inactiu' : 'Actiu'}</td>
+                    <td class="estat"><span style="background-color: ${treballador.estat ? '#ff4d50' : '#84dc56'};" class="estat">${treballador.estat ? 'Inactiu' : 'Actiu'}</span></td>
                 </tr>
             `
+
+            // ${treballador.estat ? 'Inactiu' : 'Actiu'}
         })
                 
     })
@@ -74,12 +76,15 @@ function carregarTreballador(dades) {
         donarDeBaixaButton.dataset.micromodalTrigger = 'modal-2'
     }
 
+    $('#cambiar-dades')[0].onclick = () => {
+        window.location.href = `/admin/treballadors/cambiar-dades/${dades.id}`
+    }
 }
 
 
 if (window.location.pathname === '/admin' || window.location.pathname === '/admin/') {
     carregarTreballadors()
-} else if (window.location.pathname.includes('/admin/treballador') && !window.location.pathname.includes('/afegir')) {
+} else if (window.location.pathname.includes('/admin/treballador') && !window.location.pathname.includes('/afegir') && !window.location.pathname.includes('/cambiar-dades')) {
     carregarTreballador(dades)
     drawHorari(dades.horari)
     MicroModal.init()
@@ -98,6 +103,8 @@ if (window.location.pathname === '/admin' || window.location.pathname === '/admi
     gestionarDeFins()
 } else if (window.location.pathname.includes('/admin/treballadors/afegir')) {
     carregarAfegirNouTreballador()
+} else if (window.location.pathname.includes('/admin/treballadors/cambiar-dades')) {
+    carregarCambiarDadesTreballador()
 }
 
 function gestionarDeFins() {
@@ -120,6 +127,48 @@ function carregarInfo(nom, cognom, rol, fotoPerfil) {
     $('#cognom')[0].innerText = cognom
     $('#rol')[0].innerText = rol
     $('#foto-perfil').attr('src', `/uploads/${fotoPerfil}`)
+}
+
+async function carregarCambiarDadesTreballador() {
+    await carregarAfegirNouTreballador()
+    const nom = $('#nom-input')[0]
+    const cognoms = $('#cognoms')[0]
+    const genere = $('#genere')[0]
+    const hores = $('#hores-contracte')[0]
+    const rol = $('#rols')[0]
+    const email = $('#email')[0]
+
+    nom.value = dades.nom
+    cognoms.value = dades.cognom
+    genere.value = dades.genere
+    hores.value = dades.hores_contracte
+    rol.value = dades.role
+    email.value = dades.email
+
+    drawHorari(dades.horari, true)
+    $('#tornar-button')[0].onclick = () => {
+        window.location.href = `/admin/treballador/${dades.id}`
+    }
+}
+
+
+function enviarCambiarDadesTreballador() {
+    axios.post('/admin/api/cambiar-dades', 
+        {
+            id: dades.id,
+            nom: $('#nom-input')[0].value,
+            cognom: $('#cognoms')[0].value,
+            genere: $('#genere')[0].value,
+            hores_contracte: $('#hores-contracte')[0].value,
+            role: $('#rols')[0].value,
+            email: $('#email')[0].value,
+            horari: horariDies,
+        }).then(res => {
+            console.log(res.data)
+            window.location.href = '/admin/treballador/' + dades.id
+        }).catch(err => {
+            console.error(err)
+        })
 }
 
 function carregarTrajectes() {
@@ -677,17 +726,22 @@ function afegirInputsAlHorari() {
 
 function carregarAfegirNouTreballador() {
     //Carregar el select dels rols que hi han
-    const rolsSelect = $('#rols')[0]
-    axios.get('/admin/api/rols').then(res => {
-        rolsSelect.innerHTML = ''
-        rols = res.data
-        res.data.forEach(rol => {
-            rolsSelect.innerHTML += `
-                <option value="${rol.id}">${rol.nom_m}</option> 
-            `
+
+    return new Promise((resolve, reject) => {
+        const rolsSelect = $('#rols')[0]
+        axios.get('/admin/api/rols').then(res => {
+            rolsSelect.innerHTML = ''
+            rols = res.data
+            res.data.forEach(rol => {
+                rolsSelect.innerHTML += `
+                    <option value="${rol.id}">${rol.nom_m}</option> 
+                `
+            })
+            resolve()
+        }).catch(err => {
+            console.error(err)
+            reject()
         })
-    }).catch(err => {
-        console.error(err)
     })
 }
 

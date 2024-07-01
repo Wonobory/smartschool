@@ -35,4 +35,6 @@ function drawHorari(horari, edit = false) {
             i++
         })
     })
+
+    if (edit) horariDies = horari
 }

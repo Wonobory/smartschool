@@ -1,0 +1,19 @@
+.calendar-button {
+    font-size: 25px;
+
+    margin-inline: 5px;
+
+
+    cursor: pointer;
+
+    transition: all 0.1s ease;
+
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none;   
+}
+
+.calendar-button:hover {
+    color: #007bff;
+}
